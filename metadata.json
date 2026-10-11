@@ -1,0 +1,6 @@
+{
+  "name": "Confitería San Miguel",
+  "description": "Boutique artesanal de chocolates y bombones gourmet de Madrid. Selección de cacao puro, confección de cofres personalizados y alta bombonería.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
