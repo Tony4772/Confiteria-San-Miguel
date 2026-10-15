@@ -23,11 +23,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.outlined.CardGiftcard
-import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.Icon
@@ -89,16 +89,16 @@ fun AppBottomNav(
       )
 
       BottomNavItem(
-        label = "Arma tu Caja",
+        label = "Armar Caja",
         selectedIcon = Icons.Filled.CardGiftcard,
         unselectedIcon = Icons.Outlined.CardGiftcard,
         isSelected = currentScreen is CurrentScreen.BoxBuilder,
-        testTag = "tab_arma_caja",
+        testTag = "tab_armar_caja",
         onClick = { onNavigate(CurrentScreen.BoxBuilder) }
       )
 
       BottomNavItem(
-        label = "Bolsa",
+        label = "Carrito",
         selectedIcon = Icons.Filled.ShoppingBag,
         unselectedIcon = Icons.Outlined.ShoppingBag,
         isSelected = currentScreen is CurrentScreen.Cart,
@@ -108,10 +108,10 @@ fun AppBottomNav(
       )
 
       BottomNavItem(
-        label = "Perfil",
-        selectedIcon = Icons.Filled.Favorite,
-        unselectedIcon = Icons.Outlined.FavoriteBorder,
-        isSelected = currentScreen is CurrentScreen.Profile,
+        label = "Mi Cuenta",
+        selectedIcon = Icons.Filled.Person,
+        unselectedIcon = Icons.Outlined.Person,
+        isSelected = currentScreen is CurrentScreen.Profile || currentScreen is CurrentScreen.ShopAdmin,
         testTag = "tab_perfil",
         onClick = { onNavigate(CurrentScreen.Profile) }
       )

@@ -1,6 +1,6 @@
 package com.example.ui.components
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,11 +14,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
@@ -29,15 +29,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.data.SanMiguelData
+import com.example.R
 import com.example.ui.theme.CreamSurface
 import com.example.ui.theme.GoldSecondary
 import com.example.ui.theme.OnSurfaceDark
@@ -67,7 +67,7 @@ fun AppTopBar(
         modifier = Modifier
           .fillMaxWidth()
           .widthIn(max = 840.dp)
-          .height(68.dp)
+          .height(76.dp)
           .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -126,50 +126,31 @@ fun AppTopBar(
                 .size(44.dp)
                 .testTag("profile_button")
             ) {
-              SanMiguelImage(
-                model = SanMiguelData.PROFILE_URL,
+              Icon(
+                imageVector = Icons.Filled.Person,
                 contentDescription = "Perfil de usuario",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                  .size(32.dp)
-                  .clip(CircleShape)
-                  .border(1.dp, GoldSecondary.copy(alpha = 0.4f), CircleShape)
+                tint = OnSurfaceDark
               )
             }
           }
         } else {
           // Standard header
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
+          Column(
             modifier = Modifier
               .weight(1f)
               .padding(end = 8.dp)
           ) {
-            SanMiguelImage(
-              model = SanMiguelData.LOGO_URL,
-              contentDescription = "Confitería San Miguel Logo",
+            Image(
+              painter = painterResource(R.drawable.logo_wordmark),
+              contentDescription = "Fernandina de Jagua Chocolates",
               contentScale = ContentScale.Fit,
+              alignment = Alignment.CenterStart,
               modifier = Modifier
-                .height(34.dp)
-                .width(34.dp)
-                .clip(CircleShape)
+                .height(48.dp)
+                .fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.width(10.dp))
-
-            Column {
-              Text(
-                text = "Confitería San Miguel",
-                style = MaterialTheme.typography.titleMedium.copy(
-                  fontWeight = FontWeight.Bold,
-                  fontSize = 15.sp
-                ),
-                color = OnSurfaceDark,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-              )
-
-              Row(
+            Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 1.dp)
               ) {
@@ -181,7 +162,7 @@ fun AppTopBar(
                 )
                 Spacer(modifier = Modifier.width(2.dp))
                 Text(
-                  text = "MADRID · ENVÍO EXPRESS",
+                  text = "SAN MIGUEL · LIMA",
                   style = MaterialTheme.typography.labelSmall.copy(
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
@@ -197,7 +178,6 @@ fun AppTopBar(
                   modifier = Modifier.size(13.dp)
                 )
               }
-            }
           }
 
           Row(verticalAlignment = Alignment.CenterVertically) {
@@ -220,14 +200,10 @@ fun AppTopBar(
                 .size(44.dp)
                 .testTag("profile_button")
             ) {
-              SanMiguelImage(
-                model = SanMiguelData.PROFILE_URL,
+              Icon(
+                imageVector = Icons.Filled.Person,
                 contentDescription = "Perfil",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                  .size(34.dp)
-                  .clip(CircleShape)
-                  .border(1.5.dp, GoldSecondary.copy(alpha = 0.4f), CircleShape)
+                tint = OnSurfaceDark
               )
             }
           }

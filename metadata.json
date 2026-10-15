@@ -1,6 +1,6 @@
 {
-  "name": "Confitería San Miguel",
-  "description": "Boutique artesanal de chocolates y bombones gourmet de Madrid. Selección de cacao puro, confección de cofres personalizados y alta bombonería.",
+  "name": "Fernandina de Jagua Chocolates",
+  "description": "Chocolates y bombones en Comandante Guillermo Moore 296, San Miguel, Lima. Selección de cacao peruano y cofres personalizados.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -16,3 +16,7 @@
 local.properties
 .env
 debug.keystore
+firestore-rules-analysis.md
+/functions/node_modules
+firebase-debug.log
+firebase-debug.*.log

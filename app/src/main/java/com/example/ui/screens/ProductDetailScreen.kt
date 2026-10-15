@@ -84,7 +84,6 @@ import com.example.ui.theme.OnSurfaceVariant
 import com.example.ui.theme.OutlineGrey
 import com.example.ui.theme.SecondaryFixed
 import com.example.ui.theme.SecondaryFixedDim
-import com.example.viewmodel.PackOption
 import com.example.viewmodel.ShopUiState
 
 @Composable
@@ -92,7 +91,6 @@ fun ProductDetailScreen(
   product: Product,
   uiState: ShopUiState,
   onGallerySelect: (Int) -> Unit,
-  onPackSelect: (PackOption) -> Unit,
   onChangeQuantity: (Int) -> Unit,
   onToggleRibbon: (Boolean) -> Unit,
   onToggleCard: (Boolean) -> Unit,
@@ -105,7 +103,7 @@ fun ProductDetailScreen(
   val scrollState = rememberScrollState()
   val isFavorite = uiState.favorites.contains(product.id)
   val currentImage = SanMiguelData.detailGallery.getOrElse(uiState.detailGalleryIndex) { product.imageUrl }
-  val totalPackPrice = uiState.detailSelectedPack.price * uiState.detailQuantity
+  val totalPackPrice = product.price * uiState.detailQuantity
 
   BoxWithConstraints(
     modifier = Modifier
@@ -151,7 +149,6 @@ fun ProductDetailScreen(
             product = product,
             uiState = uiState,
             totalPackPrice = totalPackPrice,
-            onPackSelect = onPackSelect,
             onChangeQuantity = onChangeQuantity,
             onToggleRibbon = onToggleRibbon,
             onToggleCard = onToggleCard,
@@ -183,7 +180,6 @@ fun ProductDetailScreen(
           product = product,
           uiState = uiState,
           totalPackPrice = totalPackPrice,
-          onPackSelect = onPackSelect,
           onChangeQuantity = onChangeQuantity,
           onToggleRibbon = onToggleRibbon,
           onToggleCard = onToggleCard,
@@ -346,7 +342,6 @@ private fun ProductInfoForm(
   product: Product,
   uiState: ShopUiState,
   totalPackPrice: Double,
-  onPackSelect: (PackOption) -> Unit,
   onChangeQuantity: (Int) -> Unit,
   onToggleRibbon: (Boolean) -> Unit,
   onToggleCard: (Boolean) -> Unit,
@@ -372,7 +367,7 @@ private fun ProductInfoForm(
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-          text = "OBRADOR SAN MIGUEL · LOTE EXCLUSIVO",
+          text = "FERNANDINA DE JAGUA · LOTE EXCLUSIVO",
           style = MaterialTheme.typography.labelSmall.copy(
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp
@@ -384,7 +379,7 @@ private fun ProductInfoForm(
       Spacer(modifier = Modifier.height(4.dp))
 
       Text(
-        text = "Bombón de Autor: Praliné Avellana Dorada & Fleur de Sel",
+        text = product.name,
         style = MaterialTheme.typography.headlineMedium.copy(
           fontFamily = FontFamily.Serif,
           fontWeight = FontWeight.Bold,
@@ -394,25 +389,25 @@ private fun ProductInfoForm(
         lineHeight = 29.sp
       )
 
-      Spacer(modifier = Modifier.height(4.dp))
-
-      Row(verticalAlignment = Alignment.CenterVertically) {
+      if (product.subtitle.isNotBlank()) {
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
-          text = "€${String.format(java.util.Locale.US, "%.2f", uiState.detailSelectedPack.price)}",
-          style = MaterialTheme.typography.titleLarge.copy(
-            fontFamily = FontFamily.Serif,
-            fontWeight = FontWeight.Bold
-          ),
-          color = GoldSecondary
-        )
-        Spacer(modifier = Modifier.width(6.dp))
-        val perUd = (uiState.detailSelectedPack.price / uiState.detailSelectedPack.count)
-        Text(
-          text = "(Pack de ${uiState.detailSelectedPack.count} unidades · €${String.format(java.util.Locale.US, "%.2f", perUd)}/ud)",
-          style = MaterialTheme.typography.bodySmall,
+          text = product.subtitle,
+          style = MaterialTheme.typography.bodyMedium,
           color = OnSurfaceVariant
         )
       }
+
+      Spacer(modifier = Modifier.height(4.dp))
+
+      Text(
+        text = "S/ ${String.format(java.util.Locale.US, "%.2f", product.price)}",
+        style = MaterialTheme.typography.titleLarge.copy(
+          fontFamily = FontFamily.Serif,
+          fontWeight = FontWeight.Bold
+        ),
+        color = GoldSecondary
+      )
     }
 
     // Origin Badges Strip
@@ -420,8 +415,8 @@ private fun ProductInfoForm(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-      OriginBadge(label = "70% Cacao Ecuador", icon = Icons.Default.Eco)
-      OriginBadge(label = "Avellana IGP Piamonte", icon = Icons.Default.Verified)
+      OriginBadge(label = "70% Cacao de Piura", icon = Icons.Default.Eco)
+      OriginBadge(label = "Castaña de Madre de Dios", icon = Icons.Default.Verified)
       OriginBadge(label = "Elaboración Manual", icon = Icons.Default.Handshake)
     }
 
@@ -452,7 +447,7 @@ private fun ProductInfoForm(
             )
           }
           Text(
-            text = "NOTAS DE OBRADOR",
+            text = "NOTAS DEL CHOCOLATERO",
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
             color = OnSurfaceVariant
           )
@@ -489,7 +484,7 @@ private fun ProductInfoForm(
           horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
           AromaChip(text = "Tostado Intenso")
-          AromaChip(text = "Vainilla Bourbon")
+          AromaChip(text = "Vainilla de selva")
         }
         Spacer(modifier = Modifier.height(6.dp))
         Row(
@@ -499,55 +494,6 @@ private fun ProductInfoForm(
           AromaChip(text = "Toque Floral")
           AromaChip(text = "Sal Marina Crunch")
         }
-      }
-    }
-
-    // Formato de Presentación
-    Column {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Text(
-          text = "Formato de Presentación",
-          style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-          color = OnSurfaceDark
-        )
-        Text(
-          text = "Seleccione estuche",
-          style = MaterialTheme.typography.bodySmall,
-          color = OnSurfaceVariant
-        )
-      }
-
-      Spacer(modifier = Modifier.height(8.dp))
-
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-      ) {
-        PackOptionCard(
-          option = PackOption.SINGLE,
-          isSelected = uiState.detailSelectedPack == PackOption.SINGLE,
-          modifier = Modifier.weight(1f),
-          onClick = { onPackSelect(PackOption.SINGLE) }
-        )
-
-        PackOptionCard(
-          option = PackOption.BOX6,
-          isSelected = uiState.detailSelectedPack == PackOption.BOX6,
-          hasStar = true,
-          modifier = Modifier.weight(1f),
-          onClick = { onPackSelect(PackOption.BOX6) }
-        )
-
-        PackOptionCard(
-          option = PackOption.BOX12,
-          isSelected = uiState.detailSelectedPack == PackOption.BOX12,
-          modifier = Modifier.weight(1f),
-          onClick = { onPackSelect(PackOption.BOX12) }
-        )
       }
     }
 
@@ -563,12 +509,12 @@ private fun ProductInfoForm(
     ) {
       Column {
         Text(
-          text = "Número de Paquetes",
+          text = "Cantidad",
           style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
           color = OnSurfaceDark
         )
         Text(
-          text = "Unidades del formato elegido",
+          text = "Unidades de este producto",
           style = MaterialTheme.typography.bodySmall,
           color = OnSurfaceVariant
         )
@@ -626,7 +572,7 @@ private fun ProductInfoForm(
             Icon(Icons.Default.Redeem, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-              text = "Presentación de Regalo San Miguel",
+              text = "Presentación de Regalo Fernandina",
               style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
               color = OnSurfaceDark
             )
@@ -768,7 +714,7 @@ private fun ProductInfoForm(
         AnimatedVisibility(visible = uiState.detailIngredientsExpanded) {
           Column(modifier = Modifier.padding(top = 10.dp)) {
             Text(
-              text = "Cobertura de chocolate negro 70% (habas de cacao de Ecuador, azúcar de caña virgen, manteca de cacao pura), praliné tostado (avellana IGP Piamonte 55%, azúcar caramelizado a fuego lento), nata pasteurizada fresca, mantequilla de caserío clarificada, flor de sal marina de Cádiz (0.4%), vainilla Bourbon natural de Madagascar.",
+              text = "Cobertura de chocolate negro 70% (habas de cacao de Piura, azúcar de caña, manteca de cacao), praliné tostado (castaña de Madre de Dios 55%, azúcar caramelizado a fuego lento), nata pasteurizada, mantequilla de Cajamarca, sal de Maras (0.4%) y vainilla de la selva peruana.",
               style = MaterialTheme.typography.bodySmall,
               color = OnSurfaceVariant,
               lineHeight = 18.sp
@@ -806,10 +752,10 @@ private fun ProductInfoForm(
           verticalAlignment = Alignment.CenterVertically
         ) {
           Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.AcUnit, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.LocalShipping, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-              text = "Envío en Frío Controlado 24h",
+              text = "Información de Entrega y Empaque",
               style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
               color = OnSurfaceDark
             )
@@ -824,17 +770,17 @@ private fun ProductInfoForm(
         AnimatedVisibility(visible = uiState.detailShippingExpanded) {
           Column(modifier = Modifier.padding(top = 10.dp)) {
             Text(
-              text = "Para preservar la atemperación óptima de la manteca de cacao y la emulsión viva del praliné, todos nuestros envíos se despachan en embalaje isotérmico reciclable con acumuladores de frío seco a 14°C - 18°C.",
+              text = "Cuidamos cada detalle para que tus chocolates lleguen en perfecto estado. Despachamos a domicilio en Lima Metropolitana y también ofrecemos recojo sin costo en nuestra tienda (${uiState.storefront.storeAddress}).",
               style = MaterialTheme.typography.bodySmall,
               color = OnSurfaceVariant,
               lineHeight = 18.sp
             )
             Spacer(modifier = Modifier.height(6.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-              Icon(Icons.Default.LocalShipping, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(16.dp))
+              Icon(Icons.Default.Verified, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(16.dp))
               Spacer(modifier = Modifier.width(6.dp))
               Text(
-                text = "Entrega garantizada antes de las 13:30h del día hábil siguiente.",
+                text = "Entrega cuidadosa y puntual en Lima.",
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                 color = OnSurfaceDark
               )
@@ -872,12 +818,12 @@ private fun ProductInfoForm(
           Spacer(modifier = Modifier.width(8.dp))
           Column {
             Text(
-              text = "Añadir a la Bolsa",
+              text = "Añadir al carrito",
               style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
               color = CreamSurface
             )
             Text(
-              text = "${uiState.detailSelectedPack.label} (${uiState.detailQuantity}x)",
+              text = "${uiState.detailQuantity} × S/ ${String.format(java.util.Locale.US, "%.2f", product.price)}",
               style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
               color = GoldSecondaryContainer
             )
@@ -885,7 +831,7 @@ private fun ProductInfoForm(
         }
 
         Text(
-          text = "€${String.format(java.util.Locale.US, "%.2f", totalPackPrice)}",
+          text = "S/ ${String.format(java.util.Locale.US, "%.2f", totalPackPrice)}",
           style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
           color = GoldSecondaryContainer
         )
@@ -960,57 +906,3 @@ private fun AromaChip(text: String) {
   }
 }
 
-@Composable
-private fun PackOptionCard(
-  option: PackOption,
-  isSelected: Boolean,
-  hasStar: Boolean = false,
-  modifier: Modifier = Modifier,
-  onClick: () -> Unit
-) {
-  Card(
-    modifier = modifier
-      .clip(RoundedCornerShape(12.dp))
-      .clickable(onClick = onClick)
-      .testTag("pack_option_${option.id}"),
-    shape = RoundedCornerShape(12.dp),
-    colors = CardDefaults.cardColors(
-      containerColor = if (isSelected) ChocolatePrimaryContainer else CreamSurfaceContainerLow
-    )
-  ) {
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(10.dp)
-    ) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Text(
-          text = if (hasStar) "COFRE" else "Formato",
-          style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
-          color = if (isSelected) SecondaryFixedDim else OnSurfaceVariant
-        )
-        if (hasStar) {
-          Icon(Icons.Default.Star, contentDescription = null, tint = GoldSecondaryContainer, modifier = Modifier.size(13.dp))
-        }
-      }
-
-      Spacer(modifier = Modifier.height(2.dp))
-
-      Text(
-        text = "${option.count} uds",
-        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-        color = if (isSelected) CreamSurface else OnSurfaceDark
-      )
-
-      Text(
-        text = "€${String.format(java.util.Locale.US, "%.2f", option.price)}",
-        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-        color = if (isSelected) SecondaryFixed else GoldSecondary
-      )
-    }
-  }
-}

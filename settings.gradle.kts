@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "Confitería San Miguel"
+rootProject.name = "Fernandina de Jagua Chocolates"
 
 include(":app")

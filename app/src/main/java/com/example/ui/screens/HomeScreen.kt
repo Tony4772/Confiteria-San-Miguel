@@ -1,8 +1,9 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,17 +25,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Redeem
-import androidx.compose.material.icons.filled.Spa
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Button
@@ -45,23 +50,33 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.data.SanMiguelData
 import com.example.model.Product
+import com.example.model.StorefrontCopy
 import com.example.ui.components.SanMiguelImage
 import com.example.ui.theme.ChocolatePrimaryContainer
 import com.example.ui.theme.CreamBackground
@@ -80,18 +95,30 @@ import com.example.ui.theme.OutlineGrey
 import com.example.ui.theme.SecondaryFixed
 import com.example.ui.theme.SecondaryFixedDim
 import com.example.viewmodel.ShopUiState
+import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
   uiState: ShopUiState,
-  onNavigateToBuilder: () -> Unit,
   onProductClick: (Product) -> Unit,
   onAddToCart: (Product) -> Unit,
   onToggleFavorite: (String) -> Unit,
   onFilterSelect: (String) -> Unit,
-  onOpenSustainability: () -> Unit
+  onOpenSustainability: () -> Unit,
+  onNavigateToBuilder: () -> Unit
 ) {
   val scrollState = rememberScrollState()
+  var productsY by remember { mutableIntStateOf(0) }
+  val scope = rememberCoroutineScope()
+  val showProducts: () -> Unit = {
+    onFilterSelect("Todos")
+    scope.launch { scrollState.animateScrollTo(productsY) }
+  }
+  val openCategory: (String) -> Unit = { name ->
+    onFilterSelect(name)
+    scope.launch { scrollState.animateScrollTo(productsY) }
+  }
 
   BoxWithConstraints(
     modifier = Modifier
@@ -124,48 +151,54 @@ fun HomeScreen(
           verticalAlignment = Alignment.CenterVertically
         ) {
           Column {
-            Text(
-              text = "MAESTROS CHOCOLATEROS DESDE 1928",
-              style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.2.sp
-              ),
-              color = GoldSecondary
-            )
-            Text(
-              text = "El arte del cacao puro",
-              style = MaterialTheme.typography.headlineSmall.copy(
-                fontFamily = FontFamily.Serif,
-                fontStyle = FontStyle.Italic,
-                fontWeight = FontWeight.Medium
-              ),
-              color = ChocolatePrimaryContainer
-            )
+            if (uiState.storefront.eyebrow.isNotBlank()) {
+              Text(
+                text = uiState.storefront.eyebrow,
+                style = MaterialTheme.typography.labelSmall.copy(
+                  fontWeight = FontWeight.Bold,
+                  letterSpacing = 1.2.sp
+                ),
+                color = GoldSecondary
+              )
+            }
+            if (uiState.storefront.headline.isNotBlank()) {
+              Text(
+                text = uiState.storefront.headline,
+                style = MaterialTheme.typography.headlineSmall.copy(
+                  fontFamily = FontFamily.Serif,
+                  fontStyle = FontStyle.Italic,
+                  fontWeight = FontWeight.Medium
+                ),
+                color = ChocolatePrimaryContainer
+              )
+            }
           }
 
-          Row(
-            modifier = Modifier
-              .clip(CircleShape)
-              .background(CreamSurfaceContainerHigh)
-              .padding(horizontal = 10.dp, vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Icon(
-              imageVector = Icons.Default.WorkspacePremium,
-              contentDescription = null,
-              tint = GoldSecondary,
-              modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-              text = "Gourmet Selection",
-              style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-              color = ChocolatePrimaryContainer
-            )
+          if (uiState.storefront.cornerBadge.isNotBlank()) {
+            Row(
+              modifier = Modifier
+                .clip(CircleShape)
+                .background(CreamSurfaceContainerHigh)
+                .padding(horizontal = 10.dp, vertical = 5.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Icon(
+                imageVector = Icons.Default.WorkspacePremium,
+                contentDescription = null,
+                tint = GoldSecondary,
+                modifier = Modifier.size(16.dp)
+              )
+              Spacer(modifier = Modifier.width(4.dp))
+              Text(
+                text = uiState.storefront.cornerBadge,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                color = ChocolatePrimaryContainer
+              )
+            }
           }
         }
 
-        // 2. Featured Seasonal Hero Banner
+        if (uiState.storefront.heroTitle.isNotBlank()) {
         Card(
           modifier = Modifier
             .fillMaxWidth()
@@ -182,8 +215,8 @@ fun HomeScreen(
           ) {
             // Background Image (Lazy Loaded)
             SanMiguelImage(
-              model = SanMiguelData.HERO_IMAGE_URL,
-              contentDescription = "Trufas de Avellana del Piamonte",
+              model = uiState.storefront.heroImageUrl.ifBlank { SanMiguelData.HERO_IMAGE_URL },
+              contentDescription = uiState.storefront.heroTitle,
               contentScale = ContentScale.Crop,
               modifier = Modifier.fillMaxSize()
             )
@@ -215,38 +248,40 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 6.dp)
               ) {
-                Row(
-                  modifier = Modifier
-                    .clip(CircleShape)
-                    .background(GoldSecondaryContainer)
-                    .padding(horizontal = 8.dp, vertical = 3.dp),
-                  verticalAlignment = Alignment.CenterVertically
-                ) {
-                  Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = null,
-                    tint = OnGoldSecondaryContainer,
-                    modifier = Modifier.size(12.dp)
-                  )
-                  Spacer(modifier = Modifier.width(3.dp))
+                if (uiState.storefront.heroBadge.isNotBlank()) {
+                  Row(
+                    modifier = Modifier
+                      .clip(CircleShape)
+                      .background(GoldSecondaryContainer)
+                      .padding(horizontal = 8.dp, vertical = 3.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                  ) {
+                    Icon(
+                      imageVector = Icons.Default.Star,
+                      contentDescription = null,
+                      tint = OnGoldSecondaryContainer,
+                      modifier = Modifier.size(12.dp)
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text(
+                      text = uiState.storefront.heroBadge,
+                      style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                      color = OnGoldSecondaryContainer
+                    )
+                  }
+                  Spacer(modifier = Modifier.width(8.dp))
+                }
+                if (uiState.storefront.heroSeason.isNotBlank()) {
                   Text(
-                    text = "EDICIÓN LIMITADA",
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = OnGoldSecondaryContainer
+                    text = uiState.storefront.heroSeason,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = SecondaryFixed.copy(alpha = 0.9f)
                   )
                 }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text(
-                  text = "Otoño · Invierno",
-                  style = MaterialTheme.typography.labelSmall,
-                  color = SecondaryFixed.copy(alpha = 0.9f)
-                )
               }
 
               Text(
-                text = "Trufas de Avellana del Piamonte & Cacao 72%",
+                text = uiState.storefront.heroTitle,
                 style = MaterialTheme.typography.headlineMedium.copy(
                   fontFamily = FontFamily.Serif,
                   fontWeight = FontWeight.SemiBold,
@@ -257,15 +292,16 @@ fun HomeScreen(
                 overflow = TextOverflow.Ellipsis
               )
 
-              Spacer(modifier = Modifier.height(4.dp))
-
-              Text(
-                text = "Cosecha especial con notas tostadas de avellana silvestre y toque sutil de flor de sal atlántica.",
-                style = MaterialTheme.typography.bodySmall,
-                color = CreamSurfaceContainerHigh,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-              )
+              if (uiState.storefront.heroBody.isNotBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                  text = uiState.storefront.heroBody,
+                  style = MaterialTheme.typography.bodySmall,
+                  color = CreamSurfaceContainerHigh,
+                  maxLines = 2,
+                  overflow = TextOverflow.Ellipsis
+                )
+              }
 
               Spacer(modifier = Modifier.height(12.dp))
 
@@ -275,23 +311,28 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
               ) {
                 Column {
-                  Text(
-                    text = "CAJA EXCLUSIVA",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                    color = SecondaryFixedDim
-                  )
-                  Text(
-                    text = "24,90 €",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                      fontFamily = FontFamily.Serif,
-                      fontWeight = FontWeight.Bold
-                    ),
-                    color = SecondaryFixed
-                  )
+                  if (uiState.storefront.heroPriceCaption.isNotBlank()) {
+                    Text(
+                      text = uiState.storefront.heroPriceCaption,
+                      style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                      color = SecondaryFixedDim
+                    )
+                  }
+                  if (uiState.storefront.heroPrice.isNotBlank()) {
+                    Text(
+                      text = uiState.storefront.heroPrice,
+                      style = MaterialTheme.typography.titleLarge.copy(
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Bold
+                      ),
+                      color = SecondaryFixed
+                    )
+                  }
                 }
 
-                Button(
-                  onClick = onNavigateToBuilder,
+                if (uiState.storefront.heroButton.isNotBlank()) {
+                  Button(
+                  onClick = showProducts,
                   colors = ButtonDefaults.buttonColors(containerColor = GoldSecondary),
                   shape = RoundedCornerShape(20.dp),
                   contentPadding = androidx.compose.foundation.layout.PaddingValues(
@@ -301,7 +342,7 @@ fun HomeScreen(
                   modifier = Modifier.testTag("explore_collection_button")
                 ) {
                   Text(
-                    text = "Explorar Colección",
+                    text = uiState.storefront.heroButton,
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                     color = CreamSurface
                   )
@@ -314,6 +355,68 @@ fun HomeScreen(
                   )
                 }
               }
+            }
+          }
+        }
+        }
+      }
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Banner Destacado: Arma tu Caja de Bombones
+        Card(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clickable { onNavigateToBuilder() }
+            .testTag("banner_armar_caja"),
+          shape = RoundedCornerShape(18.dp),
+          colors = CardDefaults.cardColors(containerColor = SecondaryFixed.copy(alpha = 0.35f)),
+          border = androidx.compose.foundation.BorderStroke(1.dp, GoldSecondaryContainer.copy(alpha = 0.7f))
+        ) {
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Box(
+              modifier = Modifier
+                .size(50.dp)
+                .clip(CircleShape)
+                .background(ChocolatePrimaryContainer),
+              contentAlignment = Alignment.Center
+            ) {
+              Icon(
+                imageVector = Icons.Default.CardGiftcard,
+                contentDescription = null,
+                tint = GoldSecondaryContainer,
+                modifier = Modifier.size(26.dp)
+              )
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+              Text(
+                text = "Arma tu Caja de Bombones",
+                style = MaterialTheme.typography.titleMedium.copy(
+                  fontFamily = FontFamily.Serif,
+                  fontWeight = FontWeight.Bold
+                ),
+                color = ChocolatePrimaryContainer
+              )
+              Text(
+                text = "Elige tus sabores favoritos y personaliza tu estuche a tu medida.",
+                style = MaterialTheme.typography.bodySmall,
+                color = OnSurfaceVariant
+              )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(
+              onClick = onNavigateToBuilder,
+              colors = ButtonDefaults.buttonColors(containerColor = ChocolatePrimaryContainer),
+              shape = RoundedCornerShape(20.dp),
+              contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+            ) {
+              Text("Armar", color = CreamSurface, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
           }
         }
@@ -338,7 +441,7 @@ fun HomeScreen(
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-              text = "Categorías de Confitería",
+              text = uiState.storefront.categoriesHeading.ifBlank { "Categorías" },
               style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
               color = OnSurfaceDark
             )
@@ -348,7 +451,7 @@ fun HomeScreen(
             text = "Ver todas",
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
             color = GoldSecondary,
-            modifier = Modifier.clickable { onNavigateToBuilder() }
+            modifier = Modifier.clickable(onClick = showProducts)
           )
         }
 
@@ -359,23 +462,29 @@ fun HomeScreen(
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
         ) {
-          items(SanMiguelData.categories) { (categoryName, imgUrl) ->
+          items(uiState.visibleCategories, key = { it.id }) { category ->
+            val selected = uiState.activeFilter == category.name
             Column(
               horizontalAlignment = Alignment.CenterHorizontally,
               modifier = Modifier
                 .width(84.dp)
-                .clickable { onNavigateToBuilder() }
+                .clickable { openCategory(category.name) }
             ) {
               Box(
                 modifier = Modifier
                   .size(68.dp)
                   .clip(CircleShape)
+                  .border(
+                    width = if (selected) 3.dp else 0.dp,
+                    color = GoldSecondary,
+                    shape = CircleShape
+                  )
                   .background(CreamSurfaceContainerHigh)
                   .padding(2.dp)
               ) {
                 SanMiguelImage(
-                  model = imgUrl,
-                  contentDescription = categoryName,
+                  model = category.imageUrl,
+                  contentDescription = category.name,
                   contentScale = ContentScale.Crop,
                   modifier = Modifier
                     .fillMaxSize()
@@ -386,7 +495,7 @@ fun HomeScreen(
               Spacer(modifier = Modifier.height(6.dp))
 
               Text(
-                text = categoryName,
+                text = category.name,
                 style = MaterialTheme.typography.labelSmall.copy(
                   fontWeight = FontWeight.SemiBold,
                   fontSize = 11.sp
@@ -402,78 +511,52 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        // 4. Quick Filter Pills
         Row(
           modifier = Modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp),
-          horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-          FilterPill(
-            label = "Más vendidos",
-            icon = Icons.Default.AutoAwesome,
-            isSelected = uiState.activeFilter == "Más vendidos",
-            onClick = { onFilterSelect("Más vendidos") }
-          )
-          FilterPill(
-            label = "Sin gluten",
-            icon = Icons.Default.Spa,
-            isSelected = uiState.activeFilter == "Sin gluten",
-            onClick = { onFilterSelect("Sin gluten") }
-          )
-          FilterPill(
-            label = "Veganos",
-            icon = Icons.Default.Eco,
-            isSelected = uiState.activeFilter == "Veganos",
-            onClick = { onFilterSelect("Veganos") }
-          )
-          FilterPill(
-            label = "Para Regalar",
-            icon = Icons.Default.Redeem,
-            isSelected = uiState.activeFilter == "Para Regalar",
-            onClick = { onFilterSelect("Para Regalar") }
-          )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // 5. Responsive Star Products Grid ("Creaciones Emblemáticas")
-        Row(
-          modifier = Modifier
-            .fillMaxWidth()
+            .onGloballyPositioned { coordinates ->
+              productsY = coordinates.positionInParent().y.roundToInt()
+            }
             .padding(horizontal = 16.dp),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.Bottom
         ) {
           Text(
-            text = "Creaciones Emblemáticas",
+            text = uiState.storefront.productsHeading.ifBlank { "Productos" },
             style = MaterialTheme.typography.titleLarge.copy(
               fontFamily = FontFamily.Serif,
               fontWeight = FontWeight.Bold
             ),
             color = ChocolatePrimaryContainer
           )
-          Text(
-            text = "RECETAS MAGISTRALES",
-            style = MaterialTheme.typography.labelSmall.copy(
-              fontWeight = FontWeight.Bold,
-              letterSpacing = 0.8.sp
-            ),
-            color = GoldSecondary
-          )
+          if (uiState.storefront.productsNote.isNotBlank()) {
+            Text(
+              text = uiState.storefront.productsNote,
+              style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.8.sp
+              ),
+              color = GoldSecondary
+            )
+          }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        val displayProducts = if (uiState.activeFilter == "Más vendidos") {
-          SanMiguelData.products
+        val displayProducts = if (uiState.activeFilter == "Todos") {
+          uiState.catalog
         } else {
-          val matches = SanMiguelData.products.filter { it.category == uiState.activeFilter }
-          if (matches.isNotEmpty()) matches else SanMiguelData.products
+          uiState.catalog.filter { it.category == uiState.activeFilter }
         }
 
-        // Adaptive Responsive Grid Rows (2 on phones, 3 on tablets, 4 on desktop)
+        if (displayProducts.isEmpty()) {
+          Text(
+            text = "No hay productos en esta categoría.",
+            color = OnSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp)
+          )
+        }
+
         Column(
           modifier = Modifier
             .fillMaxWidth()
@@ -507,341 +590,113 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 6. Interactive Custom Gift Builder Banner
-        Card(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .testTag("custom_gift_builder_banner"),
-          shape = RoundedCornerShape(16.dp),
-          colors = CardDefaults.cardColors(containerColor = CreamSurfaceContainer),
-          elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-          Row(
+        if (uiState.storefront.sealTitle.isNotBlank()) {
+          Card(
             modifier = Modifier
               .fillMaxWidth()
-              .padding(if (isTablet) 20.dp else 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+              .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = CreamSurfaceContainerLowest),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
           ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.padding(16.dp)) {
+              // Seal bar
               Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 4.dp)
-              ) {
-                Icon(
-                  imageVector = Icons.Default.CardGiftcard,
-                  contentDescription = null,
-                  tint = GoldSecondary,
-                  modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                  text = "PERSONALIZACIÓN A MEDIDA",
-                  style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                  color = GoldSecondary
-                )
-              }
-
-              Text(
-                text = "¿Buscas un regalo memorable?",
-                style = MaterialTheme.typography.titleMedium.copy(
-                  fontFamily = FontFamily.Serif,
-                  fontWeight = FontWeight.Bold,
-                  fontSize = 18.sp
-                ),
-                color = ChocolatePrimaryContainer
-              )
-
-              Spacer(modifier = Modifier.height(4.dp))
-
-              Text(
-                text = "Arma tu caja personalizada en 3 simples pasos: elige el estuche, selecciona tus bombones y añade un mensaje en caligrafía dorada.",
-                style = MaterialTheme.typography.bodySmall,
-                color = OnSurfaceVariant,
-                lineHeight = 18.sp
-              )
-
-              Spacer(modifier = Modifier.height(12.dp))
-
-              // Stepper Mini Indicators
-              Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-              ) {
-                StepChip(step = "1", label = "Tamaño")
-                Text(text = "→", fontSize = 11.sp, color = OutlineGrey)
-                StepChip(step = "2", label = "Sabores")
-                Text(text = "→", fontSize = 11.sp, color = OutlineGrey)
-                StepChip(step = "3", label = "Lazo")
-              }
-
-              Spacer(modifier = Modifier.height(14.dp))
-
-              Button(
-                onClick = onNavigateToBuilder,
-                colors = ButtonDefaults.buttonColors(containerColor = ChocolatePrimaryContainer),
-                shape = RoundedCornerShape(20.dp),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                  horizontal = 18.dp,
-                  vertical = 10.dp
-                ),
-                modifier = Modifier.testTag("design_box_now_button")
-              ) {
-                Text(
-                  text = "Diseñar mi Caja Ahora",
-                  style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                  color = CreamSurfaceContainerLowest
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Icon(
-                  imageVector = Icons.Default.CardGiftcard,
-                  contentDescription = null,
-                  tint = CreamSurfaceContainerLowest,
-                  modifier = Modifier.size(16.dp)
-                )
-              }
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Box(
-              modifier = Modifier
-                .size(if (isTablet) 72.dp else 56.dp)
-                .clip(CircleShape)
-                .background(GoldSecondary.copy(alpha = 0.15f)),
-              contentAlignment = Alignment.Center
-            ) {
-              Icon(
-                imageVector = Icons.Default.Redeem,
-                contentDescription = null,
-                tint = GoldSecondary,
-                modifier = Modifier.size(if (isTablet) 36.dp else 30.dp)
-              )
-            }
-          }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 7. Sommelier Review & Fair Trade Seal
-        Card(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-          shape = RoundedCornerShape(16.dp),
-          colors = CardDefaults.cardColors(containerColor = CreamSurfaceContainerLowest),
-          elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-          Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.Top) {
-              SanMiguelImage(
-                model = SanMiguelData.PROFILE_URL,
-                contentDescription = "Marta Velázquez",
-                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                  .size(52.dp)
-                  .clip(CircleShape)
-              )
-
-              Spacer(modifier = Modifier.width(14.dp))
-
-              Column {
-                Row {
-                  repeat(5) {
-                    Icon(
-                      imageVector = Icons.Default.Star,
-                      contentDescription = null,
-                      tint = GoldSecondary,
-                      modifier = Modifier.size(16.dp)
+                  .fillMaxWidth()
+                  .clip(RoundedCornerShape(10.dp))
+                  .background(CreamSurfaceContainerLow)
+                  .padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+              ) {
+                Row(
+                  verticalAlignment = Alignment.CenterVertically,
+                  modifier = Modifier.weight(1f)
+                ) {
+                  Image(
+                    painter = painterResource(R.drawable.logo_round),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                      .size(36.dp)
+                      .clip(CircleShape)
+                  )
+                  Spacer(modifier = Modifier.width(10.dp))
+                  Column {
+                    Text(
+                      text = uiState.storefront.sealTitle,
+                      style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                      color = ChocolatePrimaryContainer
+                    )
+                    Text(
+                      text = uiState.storefront.sealBody,
+                      style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
+                      color = OnSurfaceVariant
                     )
                   }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                  text = "\"El balance tánico y la untuosidad de sus bombones de autor son una obra maestra indiscutible en la chocolatería europea.\"",
-                  style = MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = FontFamily.Serif,
-                    fontStyle = FontStyle.Italic,
-                    fontSize = 15.sp
-                  ),
-                  color = ChocolatePrimaryContainer,
-                  lineHeight = 22.sp
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                  Text(
-                    text = "Marta Velázquez",
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = OnSurfaceDark
-                  )
-                  Text(
-                    text = " · ",
-                    color = OutlineGrey,
-                    fontSize = 12.sp
-                  )
-                  Text(
-                    text = "Premio Nacional de Gastronomía",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = OnSurfaceVariant
-                  )
-                }
-              }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Seal bar
-            Row(
-              modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .background(CreamSurfaceContainerLow)
-                .padding(12.dp),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
-              ) {
-                Box(
-                  modifier = Modifier
-                    .size(36.dp)
-                    .background(SecondaryFixed, CircleShape),
-                  contentAlignment = Alignment.Center
+                TextButton(
+                  onClick = onOpenSustainability,
+                  modifier = Modifier.testTag("learn_more_sustainability_button")
                 ) {
-                  Icon(
-                    imageVector = Icons.Default.Verified,
-                    contentDescription = null,
-                    tint = ChocolatePrimaryContainer,
-                    modifier = Modifier.size(20.dp)
+                  Text(
+                    text = uiState.storefront.sealButton,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = GoldSecondary
                   )
                 }
-                Spacer(modifier = Modifier.width(10.dp))
-                Column {
-                  Text(
-                    text = "Cacao 100% Sostenible",
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = ChocolatePrimaryContainer
-                  )
-                  Text(
-                    text = "Comercio Justo y plantaciones regenerativas",
-                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
-                    color = OnSurfaceVariant
-                  )
-                }
-              }
-
-              TextButton(
-                onClick = onOpenSustainability,
-                modifier = Modifier.testTag("learn_more_sustainability_button")
-              ) {
-                Text(
-                  text = "CONOCER",
-                  style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                  color = GoldSecondary
-                )
               }
             }
           }
         }
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Horario, Dirección y Contacto de la Tienda
+        StoreLocationCard(storefront = uiState.storefront)
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Footer note
         Column(
           modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 16.dp),
           horizontalAlignment = Alignment.CenterHorizontally
         ) {
-          Box(
+          Image(
+            painter = painterResource(R.drawable.logo_wordmark),
+            contentDescription = "Fernandina de Jagua Chocolates",
+            contentScale = ContentScale.Fit,
             modifier = Modifier
-              .width(36.dp)
-              .height(2.dp)
-              .clip(RoundedCornerShape(1.dp))
-              .background(GoldSecondary.copy(alpha = 0.3f))
+              .fillMaxWidth(0.75f)
+              .heightIn(min = 180.dp, max = 240.dp)
+              .padding(horizontal = 8.dp)
           )
-          Spacer(modifier = Modifier.height(8.dp))
-          Text(
-            text = "CONFITERÍA SAN MIGUEL · MADRID, 1928",
-            style = MaterialTheme.typography.labelSmall.copy(
-              letterSpacing = 1.sp,
-              fontSize = 10.sp
-            ),
-            color = OutlineGrey
-          )
+          if (uiState.storefront.footerLine.isNotBlank()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Box(
+              modifier = Modifier
+                .width(36.dp)
+                .height(2.dp)
+                .clip(RoundedCornerShape(1.dp))
+                .background(GoldSecondary.copy(alpha = 0.3f))
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+              text = uiState.storefront.footerLine,
+              style = MaterialTheme.typography.labelSmall.copy(
+                letterSpacing = 0.4.sp,
+                fontSize = 10.sp
+              ),
+              textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+              modifier = Modifier.padding(horizontal = 24.dp),
+              color = OutlineGrey
+            )
+          }
         }
       }
     }
-  }
-}
-
-@Composable
-private fun FilterPill(
-  label: String,
-  icon: ImageVector,
-  isSelected: Boolean,
-  onClick: () -> Unit
-) {
-  Row(
-    modifier = Modifier
-      .clip(CircleShape)
-      .background(if (isSelected) ChocolatePrimaryContainer else CreamSurfaceContainerLow)
-      .clickable(onClick = onClick)
-      .padding(horizontal = 14.dp, vertical = 8.dp),
-    verticalAlignment = Alignment.CenterVertically
-  ) {
-    Icon(
-      imageVector = icon,
-      contentDescription = null,
-      tint = if (isSelected) SecondaryFixed else OutlineGrey,
-      modifier = Modifier.size(15.dp)
-    )
-    Spacer(modifier = Modifier.width(6.dp))
-    Text(
-      text = label,
-      style = MaterialTheme.typography.labelMedium.copy(
-        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-      ),
-      color = if (isSelected) CreamSurfaceContainerLowest else OnSurfaceDark
-    )
-  }
-}
-
-@Composable
-private fun StepChip(step: String, label: String) {
-  Row(
-    modifier = Modifier
-      .clip(CircleShape)
-      .background(CreamSurfaceContainerLowest)
-      .padding(horizontal = 8.dp, vertical = 4.dp),
-    verticalAlignment = Alignment.CenterVertically
-  ) {
-    Box(
-      modifier = Modifier
-        .size(16.dp)
-        .background(GoldSecondary, CircleShape),
-      contentAlignment = Alignment.Center
-    ) {
-      Text(
-        text = step,
-        color = CreamSurface,
-        fontSize = 10.sp,
-        fontWeight = FontWeight.Bold
-      )
-    }
-    Spacer(modifier = Modifier.width(5.dp))
-    Text(
-      text = label,
-      style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-      color = ChocolatePrimaryContainer
-    )
   }
 }
 
@@ -925,21 +780,17 @@ private fun ProductCard(
 
       Spacer(modifier = Modifier.height(8.dp))
 
-      // Rating
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-          imageVector = Icons.Default.Star,
-          contentDescription = null,
-          tint = GoldSecondary,
-          modifier = Modifier.size(13.dp)
-        )
-        Spacer(modifier = Modifier.width(3.dp))
-        Text(
-          text = "${product.rating} (${product.reviewsCount})",
-          style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-          color = OnSurfaceVariant
-        )
-      }
+      // Origen / Categoría artesanal
+      Text(
+        text = product.origin.ifBlank { product.category },
+        style = MaterialTheme.typography.labelSmall.copy(
+          fontWeight = FontWeight.Medium,
+          fontSize = 10.5.sp
+        ),
+        color = GoldSecondary,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+      )
 
       Spacer(modifier = Modifier.height(4.dp))
 
@@ -975,7 +826,7 @@ private fun ProductCard(
       ) {
         Column {
           Text(
-            text = "€${String.format(java.util.Locale.US, "%.2f", product.price)}",
+            text = "S/ ${String.format(java.util.Locale.US, "%.2f", product.price)}",
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = ChocolatePrimaryContainer
           )
@@ -996,10 +847,216 @@ private fun ProductCard(
         ) {
           Icon(
             imageVector = Icons.Default.Add,
-            contentDescription = "Añadir a la bolsa",
+            contentDescription = "Añadir al carrito",
             tint = CreamSurfaceContainerLowest,
             modifier = Modifier.size(18.dp)
           )
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun StoreLocationCard(
+  storefront: StorefrontCopy
+) {
+  val context = LocalContext.current
+
+  Card(
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(horizontal = 16.dp),
+    shape = RoundedCornerShape(16.dp),
+    colors = CardDefaults.cardColors(containerColor = CreamSurfaceContainerLowest),
+    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+  ) {
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(16.dp),
+      verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Box(
+            modifier = Modifier
+              .size(36.dp)
+              .clip(CircleShape)
+              .background(GoldSecondaryContainer),
+            contentAlignment = Alignment.Center
+          ) {
+            Icon(
+              imageVector = Icons.Default.Storefront,
+              contentDescription = null,
+              tint = OnGoldSecondaryContainer,
+              modifier = Modifier.size(20.dp)
+            )
+          }
+          Spacer(modifier = Modifier.width(10.dp))
+          Column {
+            Text(
+              text = "Nuestra Chocolatería",
+              style = MaterialTheme.typography.titleSmall.copy(
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold
+              ),
+              color = ChocolatePrimaryContainer
+            )
+            Text(
+              text = "Chocolatería Artesanal & Tienda en San Miguel",
+              style = MaterialTheme.typography.labelSmall,
+              color = OnSurfaceVariant
+            )
+          }
+        }
+
+        Box(
+          modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(GoldSecondaryContainer.copy(alpha = 0.5f))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+          Text(
+            text = "San Miguel, Lima",
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+            color = OnGoldSecondaryContainer
+          )
+        }
+      }
+
+      // Dirección
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .clip(RoundedCornerShape(10.dp))
+          .background(CreamSurfaceContainerLow)
+          .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Icon(
+          imageVector = Icons.Default.Place,
+          contentDescription = null,
+          tint = GoldSecondary,
+          modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+            text = "Dirección",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = ChocolatePrimaryContainer
+          )
+          Text(
+            text = storefront.storeAddress,
+            style = MaterialTheme.typography.bodySmall,
+            color = OnSurfaceDark
+          )
+        }
+        TextButton(
+          onClick = {
+            try {
+              val gmmIntentUri = Uri.parse("geo:0,0?q=" + Uri.encode(storefront.storeAddress))
+              val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+              context.startActivity(mapIntent)
+            } catch (_: Exception) {
+              val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://maps.google.com/?q=" + Uri.encode(storefront.storeAddress)))
+              context.startActivity(browserIntent)
+            }
+          }
+        ) {
+          Text("Cómo llegar", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldSecondary)
+        }
+      }
+
+      // Horario de Atención
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .clip(RoundedCornerShape(10.dp))
+          .background(CreamSurfaceContainerLow)
+          .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Icon(
+          imageVector = Icons.Default.Schedule,
+          contentDescription = null,
+          tint = GoldSecondary,
+          modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+            text = "Horario de Atención",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = ChocolatePrimaryContainer
+          )
+          Text(
+            text = storefront.storeHours,
+            style = MaterialTheme.typography.bodySmall,
+            color = OnSurfaceDark
+          )
+        }
+      }
+
+      // Teléfono / WhatsApp
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .clip(RoundedCornerShape(10.dp))
+          .background(CreamSurfaceContainerLow)
+          .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Icon(
+          imageVector = Icons.Default.Phone,
+          contentDescription = null,
+          tint = GoldSecondary,
+          modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+            text = "Teléfono y Pedidos",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = ChocolatePrimaryContainer
+          )
+          Text(
+            text = storefront.storePhone,
+            style = MaterialTheme.typography.bodySmall,
+            color = OnSurfaceDark
+          )
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+          TextButton(
+            onClick = {
+              try {
+                val callIntent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${storefront.storePhone.replace(" ", "")}"))
+                context.startActivity(callIntent)
+              } catch (_: Exception) {}
+            }
+          ) {
+            Text("Llamar", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ChocolatePrimaryContainer)
+          }
+
+          val digitsOnly = storefront.storePhone.filter { it.isDigit() }
+          if (digitsOnly.isNotBlank()) {
+            TextButton(
+              onClick = {
+                try {
+                  val waIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$digitsOnly"))
+                  context.startActivity(waIntent)
+                } catch (_: Exception) {}
+              }
+            ) {
+              Text("WhatsApp", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldSecondary)
+            }
+          }
         }
       }
     }

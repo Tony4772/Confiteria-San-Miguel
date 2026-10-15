@@ -1,17 +1,18 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,24 +20,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Cookie
-import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.TipsAndUpdates
-import androidx.compose.material.icons.filled.Widgets
-import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -47,19 +41,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.data.SanMiguelData
 import com.example.model.BonbonFlavor
 import com.example.model.BoxTier
@@ -78,20 +74,34 @@ import com.example.ui.theme.OnSurfaceDark
 import com.example.ui.theme.OnSurfaceVariant
 import com.example.ui.theme.OutlineGrey
 import com.example.ui.theme.SecondaryFixed
-import com.example.ui.theme.SecondaryFixedDim
-import com.example.ui.theme.TertiaryBrown
 import com.example.viewmodel.ShopUiState
+import java.util.Locale
 
 @Composable
 fun BoxBuilderScreen(
   uiState: ShopUiState,
-  onSelectTier: (BoxTier) -> Unit,
-  onModifyFlavorCount: (String, Int) -> Unit,
-  onSelectCategory: (String) -> Unit,
-  onAutoFill: () -> Unit,
-  onConfirmBox: () -> Unit
+  onSelectTier: (Int) -> Unit,
+  onModifyCount: (String, Int) -> Unit,
+  onClearBox: () -> Unit,
+  onConfirm: () -> Unit
 ) {
   val scrollState = rememberScrollState()
+  var selectedFilter by remember { mutableStateOf("Todos") }
+
+  val tiers = uiState.activeBoxTiers
+  val currentTier = uiState.selectedBoxTier
+  val totalBonbons = uiState.bonbonCounts.values.sum()
+  val isFull = totalBonbons == currentTier.size
+  val progress = (totalBonbons.toFloat() / currentTier.size.toFloat()).coerceIn(0f, 1f)
+
+  val allFlavors = SanMiguelData.bonbonFlavors
+  val filteredFlavors = when (selectedFilter) {
+    "Con Leche" -> allFlavors.filter { it.category == "milk" }
+    "Negro / Dark" -> allFlavors.filter { it.category == "dark" }
+    "Frutales" -> allFlavors.filter { it.category == "fruit" }
+    "Con Licor" -> allFlavors.filter { it.category == "liqueur" }
+    else -> allFlavors
+  }
 
   BoxWithConstraints(
     modifier = Modifier
@@ -113,560 +123,320 @@ fun BoxBuilderScreen(
           .widthIn(max = contentMaxWidth)
           .padding(horizontal = 16.dp, vertical = 12.dp)
       ) {
-    // 1. Atelier Header
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
-      modifier = Modifier.padding(bottom = 2.dp)
-    ) {
-      Icon(
-        imageVector = Icons.Default.Star,
-        contentDescription = null,
-        tint = GoldSecondary,
-        modifier = Modifier.size(15.dp)
-      )
-      Spacer(modifier = Modifier.width(4.dp))
-      Text(
-        text = "ATELIER DE CREACIÓN PERSONAL",
-        style = MaterialTheme.typography.labelSmall.copy(
-          fontWeight = FontWeight.Bold,
-          letterSpacing = 1.sp
-        ),
-        color = GoldSecondary
-      )
-    }
+        // Encabezado
+        Text(
+          text = "Arma tu Cofre de Bombones",
+          style = MaterialTheme.typography.headlineMedium.copy(
+            fontFamily = FontFamily.Serif,
+            fontWeight = FontWeight.Bold
+          ),
+          color = ChocolatePrimaryContainer
+        )
+        Text(
+          text = "Selecciona el tamaño de tu cofre de lujo y elige tus joyas artesanales de cacao peruano.",
+          style = MaterialTheme.typography.bodyMedium,
+          color = OnSurfaceVariant,
+          modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+        )
 
-    Text(
-      text = "Arma tu Cofre Artesanal",
-      style = MaterialTheme.typography.headlineMedium.copy(
-        fontFamily = FontFamily.Serif,
-        fontWeight = FontWeight.Bold,
-        fontSize = 26.sp
-      ),
-      color = ChocolatePrimaryContainer
-    )
+        // PASO 1: Elegir tamaño
+        Text(
+          text = "PASO 1: ELIGE EL TAMAÑO DE TU COFRE",
+          style = MaterialTheme.typography.labelSmall.copy(
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+          ),
+          color = OnSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(8.dp))
 
-    Spacer(modifier = Modifier.height(4.dp))
-
-    Text(
-      text = "Selecciona cada joya de cacao elaborada en nuestro obrador de Madrid según tus predilecciones.",
-      style = MaterialTheme.typography.bodyMedium,
-      color = OnSurfaceVariant,
-      lineHeight = 20.sp
-    )
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    // 2. Step 1: Presentation Size Selector
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      Text(
-        text = "1. TAMAÑO DE PRESENTACIÓN",
-        style = MaterialTheme.typography.labelMedium.copy(
-          fontWeight = FontWeight.Bold,
-          letterSpacing = 0.8.sp
-        ),
-        color = OnSurfaceDark
-      )
-      Text(
-        text = "Caja Hecha a Mano",
-        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-        color = GoldSecondary
-      )
-    }
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-      SanMiguelData.boxTiers.forEach { tier ->
-        val isSelected = uiState.selectedBoxTier.size == tier.size
-        Box(modifier = Modifier.weight(1f)) {
-          BoxTierCard(
-            tier = tier,
-            isSelected = isSelected,
-            onClick = { onSelectTier(tier) }
-          )
-        }
-      }
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    // 3. Step 2: The Velvet Cavity Showcase (Matrix Display)
-    Card(
-      modifier = Modifier
-        .fillMaxWidth()
-        .testTag("velvet_box_showcase"),
-      shape = RoundedCornerShape(18.dp),
-      colors = CardDefaults.cardColors(containerColor = ChocolatePrimaryContainer),
-      elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-    ) {
-      Column(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(16.dp)
-      ) {
-        // Tray Status Bar
         Row(
           modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
+          horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-          Row(verticalAlignment = Alignment.CenterVertically) {
+          tiers.forEach { tier ->
+            BoxTierCard(
+              tier = tier,
+              isSelected = tier.size == currentTier.size,
+              modifier = Modifier.weight(1f),
+              onClick = { onSelectTier(tier.size) }
+            )
+          }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // PASO 2: Visualizador del cofre y progreso
+        Text(
+          text = "PASO 2: SELECCIONA TUS SABORES",
+          style = MaterialTheme.typography.labelSmall.copy(
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+          ),
+          color = OnSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Card(
+          modifier = Modifier.fillMaxWidth(),
+          shape = RoundedCornerShape(16.dp),
+          colors = CardDefaults.cardColors(
+            containerColor = if (isFull) SecondaryFixed.copy(alpha = 0.35f) else CreamSurfaceContainerLowest
+          ),
+          border = BorderStroke(
+            1.5.dp,
+            if (isFull) GoldSecondary else CreamSurfaceContainerHigh
+          )
+        ) {
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(16.dp)
+          ) {
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                  modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(if (isFull) GoldSecondaryContainer else CreamSurfaceContainerLow),
+                  contentAlignment = Alignment.Center
+                ) {
+                  Icon(
+                    imageVector = if (isFull) Icons.Default.Check else Icons.Default.CardGiftcard,
+                    contentDescription = null,
+                    tint = if (isFull) OnGoldSecondaryContainer else GoldSecondary,
+                    modifier = Modifier.size(20.dp)
+                  )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                  Text(
+                    text = "${currentTier.name} (${currentTier.size} piezas)",
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = ChocolatePrimaryContainer
+                  )
+                  Text(
+                    text = "Llevas $totalBonbons de ${currentTier.size} bombones",
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                    color = if (isFull) GoldSecondary else OnSurfaceVariant
+                  )
+                }
+              }
+
+              if (totalBonbons > 0) {
+                TextButton(
+                  onClick = onClearBox,
+                  contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                  Icon(
+                    imageVector = Icons.Default.DeleteOutline,
+                    contentDescription = null,
+                    tint = OutlineGrey,
+                    modifier = Modifier.size(16.dp)
+                  )
+                  Spacer(modifier = Modifier.width(4.dp))
+                  Text(
+                    text = "Vaciar",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = OutlineGrey
+                  )
+                }
+              }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Barra de progreso
             Box(
               modifier = Modifier
-                .size(10.dp)
-                .background(GoldSecondaryContainer, CircleShape)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-              text = uiState.selectedBoxTier.name,
-              style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-              color = CreamSurface
-            )
-          }
-
-          Row(verticalAlignment = Alignment.Bottom) {
-            Text(
-              text = "${uiState.boxCurrentTotal}",
-              style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-              color = GoldSecondaryContainer
-            )
-            Text(
-              text = " / ${uiState.boxMaxCapacity} bombones",
-              style = MaterialTheme.typography.labelMedium,
-              color = CreamSurfaceContainerHigh
-            )
-          }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Progress Bar
-        Box(
-          modifier = Modifier
-            .fillMaxWidth()
-            .height(6.dp)
-            .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.4f))
-        ) {
-          val progress = (uiState.boxCurrentTotal.toFloat() / uiState.boxMaxCapacity).coerceIn(0f, 1f)
-          Box(
-            modifier = Modifier
-              .fillMaxWidth(progress)
-              .height(6.dp)
-              .clip(CircleShape)
-              .background(
-                Brush.horizontalGradient(
-                  colors = listOf(GoldSecondary, GoldSecondaryContainer)
-                )
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(CircleShape)
+                .background(CreamSurfaceContainerHigh)
+            ) {
+              Box(
+                modifier = Modifier
+                  .fillMaxWidth(progress)
+                  .height(8.dp)
+                  .clip(CircleShape)
+                  .background(if (isFull) GoldSecondary else ChocolatePrimaryContainer)
               )
-          )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Mensaje de estado
+            Text(
+              text = when {
+                totalBonbons == 0 -> "Toca el botón + en los sabores que deseas incluir en tu cofre."
+                totalBonbons < currentTier.size -> "Faltan ${currentTier.size - totalBonbons} bombones para completar tu ${currentTier.name}."
+                isFull -> "✨ ¡Cofre completo! Todos los espacios están llenos con tus bombones favoritos."
+                else -> "Has seleccionado ${totalBonbons - currentTier.size} bombones de más para este cofre."
+              },
+              style = MaterialTheme.typography.bodySmall.copy(
+                fontWeight = if (isFull) FontWeight.Bold else FontWeight.Normal
+              ),
+              color = if (isFull) ChocolatePrimaryContainer else OnSurfaceVariant
+            )
+          }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Smart Suggestion Pill
-        val remaining = uiState.boxMaxCapacity - uiState.boxCurrentTotal
+        // Filtro de categorías
+        val filterOptions = listOf("Todos", "Con Leche", "Negro / Dark", "Frutales", "Con Licor")
+        val filterScrollState = rememberScrollState()
         Row(
           modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(Color.White.copy(alpha = 0.1f))
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
+            .horizontalScroll(filterScrollState),
+          horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.weight(1f)
-          ) {
-            Icon(
-              imageVector = Icons.Default.TipsAndUpdates,
-              contentDescription = null,
-              tint = GoldSecondaryContainer,
-              modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-              text = if (remaining > 0) {
-                "¡Agrega $remaining más para completar tu ${uiState.selectedBoxTier.name}!"
-              } else {
-                "¡Tu ${uiState.selectedBoxTier.name} está completo! 🎉"
-              },
-              style = MaterialTheme.typography.bodySmall,
-              color = CreamSurfaceContainerHigh,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis
-            )
-          }
-
-          if (remaining > 0) {
-            Text(
-              text = "RELLENAR",
-              style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.8.sp
-              ),
-              color = GoldSecondaryContainer,
+          filterOptions.forEach { filter ->
+            val isSelected = selectedFilter == filter
+            Box(
               modifier = Modifier
-                .clickable { onAutoFill() }
-                .padding(start = 8.dp)
-                .testTag("autofill_button")
-            )
+                .clip(CircleShape)
+                .background(if (isSelected) ChocolatePrimaryContainer else CreamSurfaceContainerLowest)
+                .clickable { selectedFilter = filter }
+                .padding(horizontal = 14.dp, vertical = 7.dp)
+            ) {
+              Text(
+                text = filter,
+                style = MaterialTheme.typography.labelMedium.copy(
+                  fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                ),
+                color = if (isSelected) CreamSurface else OnSurfaceDark
+              )
+            }
           }
         }
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // The Velvet Tray Grid
-        val columns = when (uiState.selectedBoxTier.size) {
-          6 -> 3
-          24 -> 6
-          else -> 4
-        }
-
-        // Build list of slots:
-        // Expanded list of filled chocolates up to current total
-        val filledSlots = mutableListOf<BonbonFlavor>()
-        uiState.bonbonCounts.forEach { (flavorId, count) ->
-          val flavor = SanMiguelData.bonbonFlavors.find { it.id == flavorId }
-          if (flavor != null) {
-            repeat(count) {
-              if (filledSlots.size < uiState.boxMaxCapacity) {
-                filledSlots.add(flavor)
-              }
-            }
+        // Lista de Sabores
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+          filteredFlavors.forEach { flavor ->
+            val count = uiState.bonbonCounts[flavor.id] ?: 0
+            FlavorItemCard(
+              flavor = flavor,
+              count = count,
+              onMinus = { onModifyCount(flavor.id, -1) },
+              onPlus = { onModifyCount(flavor.id, 1) }
+            )
           }
         }
 
-        val totalSlots = uiState.boxMaxCapacity
-        val rows = (totalSlots + columns - 1) / columns
+        Spacer(modifier = Modifier.height(24.dp))
 
-        Column(
+        // Botón inferior para añadir al carrito
+        Card(
           modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(TertiaryBrown.copy(alpha = 0.95f))
-            .padding(10.dp),
-          verticalArrangement = Arrangement.spacedBy(8.dp)
+            .testTag("confirm_box_card"),
+          shape = RoundedCornerShape(20.dp),
+          colors = CardDefaults.cardColors(containerColor = CreamSurfaceContainerLowest),
+          elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+          border = BorderStroke(1.dp, GoldSecondaryContainer.copy(alpha = 0.5f))
         ) {
-          for (r in 0 until rows) {
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(8.dp)
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+          ) {
+            Column(modifier = Modifier.weight(1f)) {
+              Text(
+                text = currentTier.name,
+                style = MaterialTheme.typography.titleMedium.copy(
+                  fontFamily = FontFamily.Serif,
+                  fontWeight = FontWeight.Bold
+                ),
+                color = ChocolatePrimaryContainer
+              )
+              Text(
+                text = "$totalBonbons de ${currentTier.size} bombones elegidos",
+                style = MaterialTheme.typography.bodySmall,
+                color = OnSurfaceVariant
+              )
+              Text(
+                text = "S/ ${String.format(Locale.US, "%.2f", currentTier.price)}",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = GoldSecondary
+              )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Button(
+              onClick = onConfirm,
+              enabled = totalBonbons > 0,
+              modifier = Modifier
+                .height(52.dp)
+                .testTag("confirm_box"),
+              colors = ButtonDefaults.buttonColors(
+                containerColor = if (isFull) ChocolatePrimaryContainer else GoldSecondary
+              ),
+              shape = RoundedCornerShape(26.dp)
             ) {
-              for (c in 0 until columns) {
-                val index = r * columns + c
-                if (index < totalSlots) {
-                  val filledFlavor = filledSlots.getOrNull(index)
-                  Box(modifier = Modifier.weight(1f)) {
-                    if (filledFlavor != null) {
-                      // Filled bonbon slot
-                      Box(
-                        modifier = Modifier
-                          .fillMaxWidth()
-                          .aspectRatio(1f)
-                          .clip(RoundedCornerShape(8.dp))
-                          .background(ChocolatePrimaryContainer)
-                          .padding(2.dp)
-                      ) {
-                        SanMiguelImage(
-                          model = filledFlavor.bonbonImageUrl,
-                          contentDescription = filledFlavor.name,
-                          contentScale = ContentScale.Crop,
-                          modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(6.dp))
-                        )
-                        Box(
-                          modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .size(16.dp)
-                            .background(GoldSecondary, CircleShape),
-                          contentAlignment = Alignment.Center
-                        ) {
-                          Text(
-                            text = "${index + 1}",
-                            color = ChocolatePrimaryContainer,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold
-                          )
-                        }
-                      }
-                    } else {
-                      // Empty cavity
-                      Box(
-                        modifier = Modifier
-                          .fillMaxWidth()
-                          .aspectRatio(1f)
-                          .clip(RoundedCornerShape(8.dp))
-                          .background(ChocolatePrimaryContainer.copy(alpha = 0.4f))
-                          .border(
-                            1.dp,
-                            GoldSecondaryContainer.copy(alpha = 0.2f),
-                            RoundedCornerShape(8.dp)
-                          )
-                          .clickable { onAutoFill() },
-                        contentAlignment = Alignment.Center
-                      ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                          Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Vacío",
-                            tint = GoldSecondaryContainer.copy(alpha = 0.7f),
-                            modifier = Modifier.size(16.dp)
-                          )
-                          Text(
-                            text = "VACÍO",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 7.sp),
-                            color = CreamSurfaceContainerHigh.copy(alpha = 0.6f)
-                          )
-                        }
-                      }
-                    }
-                  }
-                } else {
-                  Spacer(modifier = Modifier.weight(1f))
-                }
-              }
+              Icon(
+                imageVector = Icons.Default.CardGiftcard,
+                contentDescription = null,
+                tint = CreamSurface,
+                modifier = Modifier.size(18.dp)
+              )
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                text = if (isFull) "Añadir a la Bolsa" else "Completar (${totalBonbons}/${currentTier.size})",
+                fontWeight = FontWeight.Bold,
+                color = CreamSurface
+              )
             }
           }
         }
       }
     }
-
-    Spacer(modifier = Modifier.height(24.dp))
-
-    // 4. Step 3: Flavor Filter Chips
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      Text(
-        text = "2. SABORES & CREACIONES",
-        style = MaterialTheme.typography.labelMedium.copy(
-          fontWeight = FontWeight.Bold,
-          letterSpacing = 0.8.sp
-        ),
-        color = OnSurfaceDark
-      )
-      Text(
-        text = "14 Variedades",
-        style = MaterialTheme.typography.bodySmall,
-        color = OnSurfaceVariant
-      )
-    }
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .horizontalScroll(rememberScrollState()),
-      horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-      FlavorFilterChip(
-        label = "Todos los Sabores",
-        isSelected = uiState.flavorFilterCategory == "all",
-        onClick = { onSelectCategory("all") }
-      )
-      FlavorFilterChip(
-        label = "Chocolates Negros",
-        isSelected = uiState.flavorFilterCategory == "dark",
-        onClick = { onSelectCategory("dark") }
-      )
-      FlavorFilterChip(
-        label = "Con Leche & Pralinés",
-        isSelected = uiState.flavorFilterCategory == "milk",
-        onClick = { onSelectCategory("milk") }
-      )
-      FlavorFilterChip(
-        label = "Blancos & Frutales",
-        isSelected = uiState.flavorFilterCategory == "fruit",
-        onClick = { onSelectCategory("fruit") }
-      )
-      FlavorFilterChip(
-        label = "Rellenos Licor & Especia",
-        isSelected = uiState.flavorFilterCategory == "liqueur",
-        onClick = { onSelectCategory("liqueur") }
-      )
-    }
-
-    Spacer(modifier = Modifier.height(14.dp))
-
-    // 5. Flavor rows list
-    val filteredFlavors = if (uiState.flavorFilterCategory == "all") {
-      SanMiguelData.bonbonFlavors
-    } else {
-      SanMiguelData.bonbonFlavors.filter { it.category == uiState.flavorFilterCategory }
-    }
-
-    Column(
-      modifier = Modifier.fillMaxWidth(),
-      verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-      filteredFlavors.forEach { flavor ->
-        val count = uiState.bonbonCounts[flavor.id] ?: 0
-        FlavorRowCard(
-          flavor = flavor,
-          count = count,
-          onMinus = { onModifyFlavorCount(flavor.id, -1) },
-          onPlus = { onModifyFlavorCount(flavor.id, 1) }
-        )
-      }
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    // 6. Guarantee banner
-    Card(
-      modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(14.dp),
-      colors = CardDefaults.cardColors(containerColor = CreamSurfaceContainer)
-    ) {
-      Row(
-        modifier = Modifier.padding(14.dp),
-        verticalAlignment = Alignment.Top
-      ) {
-        Box(
-          modifier = Modifier
-            .size(36.dp)
-            .background(GoldSecondaryContainer.copy(alpha = 0.5f), CircleShape),
-          contentAlignment = Alignment.Center
-        ) {
-          Icon(
-            imageVector = Icons.Default.WorkspacePremium,
-            contentDescription = null,
-            tint = GoldSecondary,
-            modifier = Modifier.size(20.dp)
-          )
-        }
-        Spacer(modifier = Modifier.width(10.dp))
-        Column {
-          Text(
-            text = "Garantía de Frescura & Obrador",
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-            color = OnSurfaceDark
-          )
-          Spacer(modifier = Modifier.height(2.dp))
-          Text(
-            text = "Cada cofre se sella con cinta de seda y cera lacrada en nuestro taller de la Plaza Mayor. Consumo preferente dentro de los 28 días de su preparación.",
-            style = MaterialTheme.typography.bodySmall,
-            color = OnSurfaceVariant,
-            lineHeight = 16.sp
-          )
-        }
-      }
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    // 7. Persistent Action Area
-    Button(
-      onClick = onAutoFill,
-      modifier = Modifier
-        .fillMaxWidth()
-        .height(44.dp)
-        .testTag("btn_quick_fill_favorites"),
-      colors = ButtonDefaults.buttonColors(containerColor = CreamSurfaceContainerHigh),
-      shape = RoundedCornerShape(22.dp)
-    ) {
-      Icon(
-        imageVector = Icons.Default.AutoAwesome,
-        contentDescription = null,
-        tint = GoldSecondary,
-        modifier = Modifier.size(16.dp)
-      )
-      Spacer(modifier = Modifier.width(6.dp))
-      Text(
-        text = "Completar Automáticamente con Favoritos",
-        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-        color = OnSurfaceDark
-      )
-    }
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    Button(
-      onClick = onConfirmBox,
-      modifier = Modifier
-        .fillMaxWidth()
-        .height(54.dp)
-        .testTag("confirm_box_button"),
-      colors = ButtonDefaults.buttonColors(containerColor = GoldSecondaryContainer),
-      shape = RoundedCornerShape(27.dp),
-      elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-    ) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(
-            imageVector = Icons.Default.ShoppingBag,
-            contentDescription = null,
-            tint = OnGoldSecondaryContainer,
-            modifier = Modifier.size(20.dp)
-          )
-          Spacer(modifier = Modifier.width(8.dp))
-          Text(
-            text = "Confirmar Cofre",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = OnGoldSecondaryContainer
-          )
-        }
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Text(
-            text = "€${String.format(java.util.Locale.US, "%.2f", uiState.selectedBoxTier.price)}",
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-            color = OnGoldSecondaryContainer
-          )
-          Spacer(modifier = Modifier.width(4.dp))
-          Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-            contentDescription = null,
-            tint = OnGoldSecondaryContainer,
-            modifier = Modifier.size(18.dp)
-          )
-        }
-      }
-    }
-    }
   }
-}
 }
 
 @Composable
 private fun BoxTierCard(
   tier: BoxTier,
   isSelected: Boolean,
+  modifier: Modifier = Modifier,
   onClick: () -> Unit
 ) {
+  val containerColor by animateColorAsState(
+    targetValue = if (isSelected) ChocolatePrimaryContainer else CreamSurfaceContainerLowest,
+    label = "tierContainer"
+  )
+  val textColor = if (isSelected) CreamSurface else OnSurfaceDark
+  val subtextColor = if (isSelected) CreamSurfaceContainerHigh else OnSurfaceVariant
+  val priceColor = if (isSelected) GoldSecondaryContainer else GoldSecondary
+
   Card(
-    modifier = Modifier
-      .fillMaxWidth()
-      .clip(RoundedCornerShape(12.dp))
+    modifier = modifier
+      .clip(RoundedCornerShape(14.dp))
       .clickable(onClick = onClick)
       .testTag("tier_btn_${tier.size}"),
-    shape = RoundedCornerShape(12.dp),
-    colors = CardDefaults.cardColors(
-      containerColor = if (isSelected) ChocolatePrimaryContainer else CreamSurfaceContainerLow
+    shape = RoundedCornerShape(14.dp),
+    colors = CardDefaults.cardColors(containerColor = containerColor),
+    border = BorderStroke(
+      1.5.dp,
+      if (isSelected) GoldSecondaryContainer else CreamSurfaceContainerHigh
     ),
-    border = if (isSelected) androidx.compose.foundation.BorderStroke(1.5.dp, GoldSecondaryContainer) else null
+    elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 1.dp)
   ) {
     Column(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(vertical = 10.dp, horizontal = 6.dp),
+        .padding(vertical = 12.dp, horizontal = 8.dp),
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
       if (tier.isFavorite) {
@@ -675,82 +445,52 @@ private fun BoxTierCard(
           modifier = Modifier.padding(bottom = 2.dp)
         ) {
           Icon(
-            imageVector = Icons.Default.LocalFireDepartment,
+            imageVector = Icons.Default.Star,
             contentDescription = null,
             tint = GoldSecondaryContainer,
             modifier = Modifier.size(12.dp)
           )
+          Spacer(modifier = Modifier.width(2.dp))
           Text(
             text = "FAVORITO",
             style = MaterialTheme.typography.labelSmall.copy(
               fontSize = 8.sp,
               fontWeight = FontWeight.Bold
             ),
-            color = GoldSecondaryContainer
+            color = if (isSelected) GoldSecondaryContainer else GoldSecondary
           )
         }
       } else {
-        Icon(
-          imageVector = Icons.Default.Widgets,
-          contentDescription = null,
-          tint = if (isSelected) CreamSurfaceContainerHigh else OutlineGrey,
-          modifier = Modifier
-            .size(16.dp)
-            .padding(bottom = 2.dp)
-        )
+        Spacer(modifier = Modifier.height(14.dp))
       }
 
       Text(
-        text = tier.subtitle,
-        style = MaterialTheme.typography.titleSmall.copy(
-          fontWeight = FontWeight.Bold,
-          fontSize = 13.sp
-        ),
-        color = if (isSelected) CreamSurface else OnSurfaceDark
+        text = "${tier.size} Uds",
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+        color = textColor
       )
 
       Text(
         text = tier.name,
-        style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
-        color = if (isSelected) CreamSurfaceContainerHigh else OnSurfaceVariant
+        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+        color = subtextColor,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
       )
 
-      Spacer(modifier = Modifier.height(4.dp))
+      Spacer(modifier = Modifier.height(6.dp))
 
       Text(
-        text = "€${String.format(java.util.Locale.US, "%.2f", tier.price)}",
+        text = "S/ ${String.format(Locale.US, "%.2f", tier.price)}",
         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-        color = if (isSelected) GoldSecondaryContainer else ChocolatePrimaryContainer
+        color = priceColor
       )
     }
   }
 }
 
 @Composable
-private fun FlavorFilterChip(
-  label: String,
-  isSelected: Boolean,
-  onClick: () -> Unit
-) {
-  Box(
-    modifier = Modifier
-      .clip(CircleShape)
-      .background(if (isSelected) ChocolatePrimaryContainer else CreamSurfaceContainer)
-      .clickable(onClick = onClick)
-      .padding(horizontal = 14.dp, vertical = 7.dp)
-  ) {
-    Text(
-      text = label,
-      style = MaterialTheme.typography.labelMedium.copy(
-        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-      ),
-      color = if (isSelected) CreamSurface else OnSurfaceDark
-    )
-  }
-}
-
-@Composable
-private fun FlavorRowCard(
+private fun FlavorItemCard(
   flavor: BonbonFlavor,
   count: Int,
   onMinus: () -> Unit,
@@ -758,133 +498,140 @@ private fun FlavorRowCard(
 ) {
   Card(
     modifier = Modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(12.dp),
+    shape = RoundedCornerShape(14.dp),
     colors = CardDefaults.cardColors(containerColor = CreamSurfaceContainerLowest),
-    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    border = if (count > 0) BorderStroke(1.5.dp, GoldSecondaryContainer) else null
   ) {
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(10.dp),
-      horizontalArrangement = Arrangement.SpaceBetween,
+        .padding(12.dp),
       verticalAlignment = Alignment.CenterVertically
     ) {
-      Row(
-        modifier = Modifier.weight(1f),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        SanMiguelImage(
-          model = flavor.imageUrl,
-          contentDescription = flavor.name,
-          contentScale = ContentScale.Crop,
-          modifier = Modifier
-            .size(54.dp)
-            .clip(RoundedCornerShape(8.dp))
-        )
+      SanMiguelImage(
+        model = flavor.imageUrl,
+        contentDescription = flavor.name,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+          .size(60.dp)
+          .clip(RoundedCornerShape(10.dp))
+      )
 
-        Spacer(modifier = Modifier.width(10.dp))
+      Spacer(modifier = Modifier.width(12.dp))
 
-        Column(modifier = Modifier.weight(1f)) {
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-              text = flavor.name,
-              style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-              color = OnSurfaceDark,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-              modifier = Modifier.weight(1f, fill = false)
-            )
+      Column(modifier = Modifier.weight(1f)) {
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Text(
+            text = flavor.name,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+            color = OnSurfaceDark,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false)
+          )
 
-            flavor.tag?.let { tagText ->
-              Spacer(modifier = Modifier.width(4.dp))
-              Box(
-                modifier = Modifier
-                  .clip(CircleShape)
-                  .background(GoldSecondaryContainer.copy(alpha = 0.4f))
-                  .padding(horizontal = 6.dp, vertical = 2.dp)
-              ) {
-                Text(
-                  text = tagText,
-                  style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                  color = OnGoldSecondaryContainer,
-                  fontWeight = FontWeight.Bold
-                )
-              }
-            }
-
-            flavor.alcoholTag?.let { tagText ->
-              Spacer(modifier = Modifier.width(4.dp))
-              Box(
-                modifier = Modifier
-                  .clip(CircleShape)
-                  .background(CreamSurfaceContainerHigh)
-                  .padding(horizontal = 6.dp, vertical = 2.dp)
-              ) {
-                Text(
-                  text = tagText,
-                  style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                  color = GoldSecondary,
-                  fontWeight = FontWeight.Bold
-                )
-              }
+          flavor.tag?.let { tagText ->
+            Spacer(modifier = Modifier.width(6.dp))
+            Box(
+              modifier = Modifier
+                .clip(CircleShape)
+                .background(GoldSecondaryContainer.copy(alpha = 0.5f))
+                .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+              Text(
+                text = tagText,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                color = OnGoldSecondaryContainer,
+                fontWeight = FontWeight.Bold
+              )
             }
           }
 
-          Text(
-            text = flavor.description,
-            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
-            color = OnSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-          )
-
-          Text(
-            text = flavor.notes,
-            style = MaterialTheme.typography.labelSmall.copy(
-              fontSize = 10.5.sp,
-              fontWeight = FontWeight.Medium
-            ),
-            color = GoldSecondary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-          )
+          flavor.alcoholTag?.let { tagText ->
+            Spacer(modifier = Modifier.width(6.dp))
+            Box(
+              modifier = Modifier
+                .clip(CircleShape)
+                .background(CreamSurfaceContainerHigh)
+                .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+              Text(
+                text = tagText,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                color = GoldSecondary,
+                fontWeight = FontWeight.Bold
+              )
+            }
+          }
         }
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        Text(
+          text = flavor.description,
+          style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
+          color = OnSurfaceVariant,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis
+        )
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        Text(
+          text = flavor.notes,
+          style = MaterialTheme.typography.labelSmall.copy(
+            fontSize = 10.5.sp,
+            fontWeight = FontWeight.Medium
+          ),
+          color = GoldSecondary,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis
+        )
       }
 
-      Spacer(modifier = Modifier.width(8.dp))
+      Spacer(modifier = Modifier.width(10.dp))
 
       // Stepper
-      Row(verticalAlignment = Alignment.CenterVertically) {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+          .clip(CircleShape)
+          .background(CreamSurfaceContainerLow)
+          .padding(3.dp)
+      ) {
         IconButton(
           onClick = onMinus,
+          enabled = count > 0,
           modifier = Modifier
-            .size(30.dp)
-            .clip(CircleShape)
-            .background(CreamSurfaceContainerHigh)
+            .size(32.dp)
             .testTag("minus_flavor_${flavor.id}")
         ) {
           Icon(
             imageVector = Icons.Default.Remove,
             contentDescription = "Restar",
-            tint = OnSurfaceDark,
-            modifier = Modifier.size(15.dp)
+            tint = if (count > 0) ChocolatePrimaryContainer else OutlineGrey,
+            modifier = Modifier.size(16.dp)
           )
         }
 
         Text(
           text = "$count",
-          style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-          color = ChocolatePrimaryContainer,
+          style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+          color = if (count > 0) ChocolatePrimaryContainer else OnSurfaceVariant,
           modifier = Modifier
             .width(26.dp)
             .testTag("count_flavor_${flavor.id}"),
-          textAlign = androidx.compose.ui.text.style.TextAlign.Center
+          textAlign = TextAlign.Center
         )
 
         IconButton(
           onClick = onPlus,
           modifier = Modifier
-            .size(30.dp)
+            .size(32.dp)
             .clip(CircleShape)
             .background(ChocolatePrimaryContainer)
             .testTag("plus_flavor_${flavor.id}")
@@ -893,7 +640,7 @@ private fun FlavorRowCard(
             imageVector = Icons.Default.Add,
             contentDescription = "Sumar",
             tint = CreamSurface,
-            modifier = Modifier.size(15.dp)
+            modifier = Modifier.size(16.dp)
           )
         }
       }

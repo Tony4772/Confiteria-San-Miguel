@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AcUnit
@@ -36,6 +38,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.filled.Thermostat
@@ -54,11 +57,15 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import java.util.Calendar
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,14 +74,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.CartItem
+import com.example.model.CardCheckout
 import com.example.model.DeliveryMode
+import com.example.model.PaymentMethod
+import com.example.model.YapeCheckout
 import com.example.ui.components.SanMiguelImage
-import com.example.ui.theme.BizumTeal
-import com.example.ui.theme.ChocolatePrimary
+import com.example.ui.theme.YapePurple
 import com.example.ui.theme.ChocolatePrimaryContainer
 import com.example.ui.theme.CreamBackground
 import com.example.ui.theme.CreamSurface
@@ -102,10 +113,17 @@ fun CartScreen(
   onSelectTimeSlot: (String) -> Unit,
   onToggleGiftWrap: (Boolean) -> Unit,
   onUpdateGiftMessage: (String) -> Unit,
-  onCheckout: () -> Unit,
+  onSelectPayment: (PaymentMethod) -> Unit,
+  onCheckout: (CardCheckout?, YapeCheckout?) -> Unit,
   onNavigateToBuilder: () -> Unit
 ) {
   val scrollState = rememberScrollState()
+  var cardNumber by remember { mutableStateOf("") }
+  var cardMonth by remember { mutableStateOf("") }
+  var cardYear by remember { mutableStateOf("") }
+  var cardCvv by remember { mutableStateOf("") }
+  var yapePhone by remember { mutableStateOf("") }
+  var yapeOtp by remember { mutableStateOf("") }
 
   BoxWithConstraints(
     modifier = Modifier
@@ -134,7 +152,7 @@ fun CartScreen(
       verticalAlignment = Alignment.Bottom
     ) {
       Text(
-        text = "Mi Bolsa Gourmet",
+        text = "Tu carrito",
         style = MaterialTheme.typography.headlineMedium.copy(
           fontFamily = FontFamily.Serif,
           fontWeight = FontWeight.Bold,
@@ -143,15 +161,23 @@ fun CartScreen(
         color = ChocolatePrimaryContainer
       )
       Text(
-        text = "${uiState.cartItems.sumOf { it.quantity }} creaciones",
+        text = "${uiState.cartItems.sumOf { it.quantity }} productos",
         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
         color = OnSurfaceVariant
       )
     }
 
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Text(
+      text = "Aquí está lo que elegiste en Inicio. Revísalo y, si quieres, paga más abajo.",
+      style = MaterialTheme.typography.bodyMedium,
+      color = OnSurfaceVariant
+    )
+
     Spacer(modifier = Modifier.height(14.dp))
 
-    // 2. Free Shipping Delight Milestone Card
+    if (uiState.cartItems.isNotEmpty()) {
     Card(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(14.dp),
@@ -160,7 +186,7 @@ fun CartScreen(
       Column(modifier = Modifier.padding(14.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Icon(
-            imageVector = Icons.Default.AcUnit,
+            imageVector = Icons.Default.LocalShipping,
             contentDescription = null,
             tint = GoldSecondary,
             modifier = Modifier.size(20.dp)
@@ -168,13 +194,13 @@ fun CartScreen(
           Spacer(modifier = Modifier.width(8.dp))
           if (uiState.remainingForFreeShipping > 0.0) {
             Text(
-              text = "¡Añade €${String.format(java.util.Locale.US, "%.2f", uiState.remainingForFreeShipping)} más para Envío Climatizado Gratis!",
+              text = "¡Añade S/ ${String.format(java.util.Locale.US, "%.2f", uiState.remainingForFreeShipping)} más para Envío Gratis a Domicilio!",
               style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
               color = OnSecondaryFixed
             )
           } else {
             Text(
-              text = "¡Has alcanzado el Envío Climatizado Gratuito!",
+              text = "¡Has alcanzado el Envío Gratis a Domicilio!",
               style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
               color = OnSecondaryFixed
             )
@@ -207,17 +233,18 @@ fun CartScreen(
           horizontalArrangement = Arrangement.SpaceBetween
         ) {
           Text(
-            text = "€${String.format(java.util.Locale.US, "%.2f", uiState.cartSubtotal)} actual",
+            text = "S/ ${String.format(java.util.Locale.US, "%.2f", uiState.cartSubtotal)} actual",
             style = MaterialTheme.typography.labelSmall,
             color = OnSurfaceVariant
           )
           Text(
-            text = "Meta: €${String.format(java.util.Locale.US, "%.2f", uiState.freeShippingGoal)}",
+            text = "Meta: S/ ${String.format(java.util.Locale.US, "%.2f", uiState.freeShippingGoal)}",
             style = MaterialTheme.typography.labelSmall,
             color = OnSurfaceVariant
           )
         }
       }
+    }
     }
 
     Spacer(modifier = Modifier.height(18.dp))
@@ -236,17 +263,23 @@ fun CartScreen(
           horizontalAlignment = Alignment.CenterHorizontally
         ) {
           Text(
-            text = "Tu bolsa está vacía",
+            text = "Tu carrito está vacío",
             style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
             color = ChocolatePrimaryContainer
           )
           Spacer(modifier = Modifier.height(8.dp))
+          Text(
+            text = "Ve a Inicio, elige un producto y agrégalo.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = OnSurfaceVariant
+          )
+          Spacer(modifier = Modifier.height(12.dp))
           Button(
             onClick = onNavigateToBuilder,
             colors = ButtonDefaults.buttonColors(containerColor = ChocolatePrimaryContainer),
             shape = RoundedCornerShape(20.dp)
           ) {
-            Text("Explorar Obrador", color = CreamSurface)
+            Text("Ir a Inicio", color = CreamSurface)
           }
         }
       }
@@ -275,7 +308,7 @@ fun CartScreen(
       verticalAlignment = Alignment.CenterVertically
     ) {
       Text(
-        text = "Modalidad de Entrega Fina",
+        text = "Modalidad de Entrega",
         style = MaterialTheme.typography.titleMedium.copy(
           fontWeight = FontWeight.Bold,
           fontSize = 17.sp
@@ -291,7 +324,7 @@ fun CartScreen(
         )
         Spacer(modifier = Modifier.width(3.dp))
         Text(
-          text = "CALIDAD GARANTIZADA",
+          text = "EMPAQUE SEGURO",
           style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
           color = GoldSecondary
         )
@@ -304,22 +337,22 @@ fun CartScreen(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-      // Option A: Refrigerated
+      // Option A: Home delivery
       DeliveryOptionCard(
-        title = "Envío Refrigerado",
-        subtitle = "Control térmico a 16°C",
-        highlight = "Sin derretimiento",
+        title = "Envío a Domicilio",
+        subtitle = "Empaque cuidadoso",
+        highlight = "Lima Metropolitana",
         icon = Icons.Default.LocalShipping,
         isSelected = uiState.deliveryMode == DeliveryMode.REFRIGERATED,
         modifier = Modifier.weight(1f),
         onClick = { onSelectDeliveryMode(DeliveryMode.REFRIGERATED) }
       )
 
-      // Option B: Boutique Serrano
+      // Option B: Store pickup
       DeliveryOptionCard(
-        title = "Boutique Serrano",
-        subtitle = "Calle Serrano, Madrid",
-        highlight = "Listo en 2h",
+        title = "Recojo en Tienda",
+        subtitle = uiState.storefront.storeAddress,
+        highlight = "Gratis · San Miguel",
         icon = Icons.Default.Storefront,
         isSelected = uiState.deliveryMode == DeliveryMode.PICKUP_SERRANO,
         modifier = Modifier.weight(1f),
@@ -327,9 +360,34 @@ fun CartScreen(
       )
     }
 
+    if (uiState.deliveryMode == DeliveryMode.PICKUP_SERRANO) {
+      Spacer(modifier = Modifier.height(8.dp))
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .clip(RoundedCornerShape(10.dp))
+          .background(CreamSurfaceContainerLow)
+          .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Icon(
+          imageVector = Icons.Default.Schedule,
+          contentDescription = null,
+          tint = GoldSecondary,
+          modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+          text = "Horario de retiro: ${uiState.storefront.storeHours}",
+          style = MaterialTheme.typography.labelSmall,
+          color = ChocolatePrimaryContainer
+        )
+      }
+    }
+
     Spacer(modifier = Modifier.height(12.dp))
 
-    // Schedule Time Slot
+    // Schedule Date + Time picker
     Card(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(14.dp),
@@ -345,7 +403,7 @@ fun CartScreen(
           )
           Spacer(modifier = Modifier.width(6.dp))
           Text(
-            text = "Programar Momento de Entrega",
+            text = "Programar Fecha y Hora de Entrega",
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
             color = ChocolatePrimaryContainer
           )
@@ -353,30 +411,70 @@ fun CartScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Row(
+        val context = LocalContext.current
+        Button(
+          onClick = {
+            val now = Calendar.getInstance()
+            DatePickerDialog(
+              context,
+              { _, year, month, day ->
+                TimePickerDialog(
+                  context,
+                  { _, hour, minute ->
+                    val amPm = if (hour < 12) "a.m." else "p.m."
+                    val h12 = when {
+                      hour == 0 -> 12
+                      hour > 12 -> hour - 12
+                      else -> hour
+                    }
+                    val min = minute.toString().padStart(2, '0')
+                    val monthNames = listOf("ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic")
+                    val label = "$day ${monthNames[month]} $year · $h12:$min $amPm"
+                    onSelectTimeSlot(label)
+                  },
+                  now.get(Calendar.HOUR_OF_DAY),
+                  now.get(Calendar.MINUTE),
+                  false
+                ).show()
+              },
+              now.get(Calendar.YEAR),
+              now.get(Calendar.MONTH),
+              now.get(Calendar.DAY_OF_MONTH)
+            ).apply {
+              datePicker.minDate = now.timeInMillis
+            }.show()
+          },
+          colors = ButtonDefaults.buttonColors(
+            containerColor = if (uiState.selectedTimeSlot.isNotBlank())
+              ChocolatePrimaryContainer else CreamSurfaceContainerHigh,
+            contentColor = if (uiState.selectedTimeSlot.isNotBlank())
+              CreamSurfaceContainerLowest else ChocolatePrimaryContainer
+          ),
+          shape = RoundedCornerShape(10.dp),
           modifier = Modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-          horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .height(48.dp)
         ) {
-          TimeSlotPill(
-            label = "Mañana (10:00 - 14:00)",
-            isSelected = uiState.selectedTimeSlot == "Mañana (10:00 - 14:00)",
-            showCheck = true,
-            onClick = { onSelectTimeSlot("Mañana (10:00 - 14:00)") }
+          Icon(
+            imageVector = Icons.Default.CalendarToday,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp)
           )
-          TimeSlotPill(
-            label = "Tarde (16:00 - 20:00)",
-            isSelected = uiState.selectedTimeSlot == "Tarde (16:00 - 20:00)",
-            showCheck = false,
-            onClick = { onSelectTimeSlot("Tarde (16:00 - 20:00)") }
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(
+            text = if (uiState.selectedTimeSlot.isNotBlank())
+              uiState.selectedTimeSlot else "Seleccionar fecha y hora",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Medium
           )
-          TimeSlotPill(
-            label = "Fecha Especial",
-            isSelected = uiState.selectedTimeSlot == "Fecha Especial",
-            icon = Icons.Default.Cake,
-            showCheck = false,
-            onClick = { onSelectTimeSlot("Fecha Especial") }
+        }
+
+        if (uiState.selectedTimeSlot.isNotBlank()) {
+          Spacer(modifier = Modifier.height(6.dp))
+          Text(
+            text = "✓ Entrega programada",
+            style = MaterialTheme.typography.labelSmall,
+            color = GoldSecondary
           )
         }
       }
@@ -419,7 +517,7 @@ fun CartScreen(
                 color = ChocolatePrimaryContainer
               )
               Text(
-                text = "+ €3.00",
+                text = "+ S/ 3.00",
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                 color = GoldSecondary
               )
@@ -428,7 +526,7 @@ fun CartScreen(
             Spacer(modifier = Modifier.height(2.dp))
 
             Text(
-              text = "Lazo de satén dorado hecho a mano, caja precintada con lacre de San Miguel y dedicatoria caligráfica.",
+              text = "Lazo de satén dorado hecho a mano, caja precintada con lacre de Fernandina de Jagua y dedicatoria caligráfica.",
               style = MaterialTheme.typography.bodySmall,
               color = OnSurfaceVariant,
               lineHeight = 16.sp
@@ -495,9 +593,8 @@ fun CartScreen(
 
     Spacer(modifier = Modifier.height(20.dp))
 
-    // 6. Express Payment Shortcuts (Google Pay & Bizum)
     Text(
-      text = "PAGO RÁPIDO EN 1-TOQUE",
+      text = "MÉTODO DE PAGO",
       style = MaterialTheme.typography.labelSmall.copy(
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp
@@ -506,74 +603,130 @@ fun CartScreen(
       modifier = Modifier.align(Alignment.CenterHorizontally)
     )
 
+    Spacer(modifier = Modifier.height(6.dp))
+
+    Text(
+      text = when (uiState.paymentMethod) {
+        PaymentMethod.YAPE -> "El código de aprobación sale en Yape, en el menú lateral. El cobro se hace ahora."
+        PaymentMethod.CARD -> "El cobro con tarjeta se hace ahora, a través de Culqi."
+      },
+      style = MaterialTheme.typography.bodySmall,
+      color = OnSurfaceVariant,
+      modifier = Modifier.padding(horizontal = 8.dp)
+    )
+
     Spacer(modifier = Modifier.height(10.dp))
 
     Row(
       modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(10.dp)
+      horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-      Button(
-        onClick = onCheckout,
-        modifier = Modifier
-          .weight(1f)
-          .height(48.dp)
-          .testTag("gpay_button"),
-        colors = ButtonDefaults.buttonColors(containerColor = ChocolatePrimary),
-        shape = RoundedCornerShape(24.dp)
-      ) {
-        Text(
-          text = "G Pay",
-          style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-          color = Color.White
-        )
-      }
-
-      Button(
-        onClick = onCheckout,
-        modifier = Modifier
-          .weight(1f)
-          .height(48.dp)
-          .testTag("bizum_button"),
-        colors = ButtonDefaults.buttonColors(containerColor = BizumTeal),
-        shape = RoundedCornerShape(24.dp)
-      ) {
-        Text(
-          text = "bizum",
-          style = MaterialTheme.typography.titleMedium.copy(
-            fontWeight = FontWeight.Bold,
-            fontSize = 17.sp
-          ),
-          color = Color.White
-        )
-      }
+      PaymentChoice(
+        label = "Yape",
+        selected = uiState.paymentMethod == PaymentMethod.YAPE,
+        container = YapePurple,
+        onClick = { onSelectPayment(PaymentMethod.YAPE) },
+        modifier = Modifier.weight(1f),
+        testTag = "yape_button"
+      )
+      PaymentChoice(
+        label = "Tarjeta",
+        selected = uiState.paymentMethod == PaymentMethod.CARD,
+        container = ChocolatePrimaryContainer,
+        onClick = { onSelectPayment(PaymentMethod.CARD) },
+        modifier = Modifier.weight(1f),
+        testTag = "card_button"
+      )
     }
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      Box(
-        modifier = Modifier
-          .weight(1f)
-          .height(1.dp)
-          .background(CreamSurfaceContainerHigh)
-      )
+    if (uiState.paymentMethod == PaymentMethod.CARD) {
       Text(
-        text = " O CONTINUAR CON RESUMEN ",
-        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-        color = OutlineGrey
+        text = "Ingresa los datos de tu tarjeta de crédito o débito:",
+        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+        color = ChocolatePrimaryContainer
       )
-      Box(
-        modifier = Modifier
-          .weight(1f)
-          .height(1.dp)
-          .background(CreamSurfaceContainerHigh)
+      Spacer(modifier = Modifier.height(6.dp))
+      OutlinedTextField(
+        value = cardNumber,
+        onValueChange = { cardNumber = it.filter(Char::isDigit).take(19) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        label = { Text("Número de tarjeta (16 dígitos)") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
       )
+      Spacer(modifier = Modifier.height(8.dp))
+      Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.height(64.dp)) {
+        OutlinedTextField(
+          value = cardMonth,
+          onValueChange = { cardMonth = it.filter(Char::isDigit).take(2) },
+          modifier = Modifier.weight(1f).fillMaxHeight(),
+          singleLine = true,
+          label = { Text("Mes (MM)") },
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        OutlinedTextField(
+          value = cardYear,
+          onValueChange = { cardYear = it.filter(Char::isDigit).take(4) },
+          modifier = Modifier.weight(1f).fillMaxHeight(),
+          singleLine = true,
+          label = { Text("Año") },
+          placeholder = { Text("AAAA") },
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        OutlinedTextField(
+          value = cardCvv,
+          onValueChange = { cardCvv = it.filter(Char::isDigit).take(4) },
+          modifier = Modifier.weight(1f).fillMaxHeight(),
+          singleLine = true,
+          label = { Text("CVV") },
+          visualTransformation = PasswordVisualTransformation(),
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+      }
+      Text(
+        text = "🔒 Pago 100% seguro y encriptado a través de Culqi.",
+        style = MaterialTheme.typography.labelSmall,
+        color = OnSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+      )
+      Spacer(modifier = Modifier.height(14.dp))
     }
 
-    Spacer(modifier = Modifier.height(14.dp))
+    if (uiState.paymentMethod == PaymentMethod.YAPE) {
+      Text(
+        text = "Paga con Yape de forma rápida y sencilla:",
+        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+        color = ChocolatePrimaryContainer
+      )
+      Spacer(modifier = Modifier.height(6.dp))
+      OutlinedTextField(
+        value = yapePhone,
+        onValueChange = { yapePhone = it.filter(Char::isDigit).take(9) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        label = { Text("Celular Yape (9 dígitos)") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+      )
+      Spacer(modifier = Modifier.height(8.dp))
+      OutlinedTextField(
+        value = yapeOtp,
+        onValueChange = { yapeOtp = it.filter(Char::isDigit).take(6) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        label = { Text("Código de aprobación (6 dígitos)") },
+        placeholder = { Text("Ej. 123456") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+      )
+      Text(
+        text = "💡 Abre tu app Yape, pulsa en el menú lateral y copia tu 'Código de aprobación'.",
+        style = MaterialTheme.typography.labelSmall,
+        color = OnSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+      )
+      Spacer(modifier = Modifier.height(14.dp))
+    }
 
     // 7. Price Summary Breakdown
     Card(
@@ -592,7 +745,7 @@ fun CartScreen(
         ) {
           Text(text = "Subtotal confitería", color = OnSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
           Text(
-            text = "€${String.format(java.util.Locale.US, "%.2f", uiState.cartSubtotal)}",
+            text = "S/ ${String.format(java.util.Locale.US, "%.2f", uiState.cartSubtotal)}",
             fontWeight = FontWeight.SemiBold,
             color = OnSurfaceDark
           )
@@ -604,11 +757,19 @@ fun CartScreen(
           verticalAlignment = Alignment.CenterVertically
         ) {
           Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "Envío Especial Climatizado (16°C)", color = OnSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+            Text(
+              text = if (uiState.deliveryMode == DeliveryMode.PICKUP_SERRANO) "Recojo en Tienda (San Miguel)" else "Envío a Domicilio",
+              color = OnSurfaceVariant,
+              style = MaterialTheme.typography.bodyMedium
+            )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(Icons.Default.Info, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(14.dp))
           }
-          Text(text = "Gratis", fontWeight = FontWeight.Bold, color = GoldSecondary)
+          Text(
+            text = if (uiState.shippingPrice == 0.0) "Gratis" else "S/ ${String.format(java.util.Locale.US, "%.2f", uiState.shippingPrice)}",
+            fontWeight = FontWeight.Bold,
+            color = GoldSecondary
+          )
         }
 
         if (uiState.giftWrapEnabled) {
@@ -616,8 +777,8 @@ fun CartScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
           ) {
-            Text(text = "Empaque de Lujo y Tarjeta Artesanal", color = OnSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
-            Text(text = "€3.00", fontWeight = FontWeight.SemiBold, color = OnSurfaceDark)
+            Text(text = "Empaque para Regalo con Dedicatoria", color = OnSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+            Text(text = "S/ 3.00", fontWeight = FontWeight.SemiBold, color = OnSurfaceDark)
           }
         }
 
@@ -640,14 +801,19 @@ fun CartScreen(
               color = ChocolatePrimaryContainer
             )
             Text(
-              text = "IVA e impuestos incluidos",
+              text = "IGV incluido",
+              style = MaterialTheme.typography.labelSmall,
+              color = OnSurfaceVariant
+            )
+            Text(
+              text = "Emitimos boleta y factura electrónica.",
               style = MaterialTheme.typography.labelSmall,
               color = OnSurfaceVariant
             )
           }
 
           Text(
-            text = "€${String.format(java.util.Locale.US, "%.2f", uiState.cartTotal)}",
+            text = "S/ ${String.format(java.util.Locale.US, "%.2f", uiState.cartTotal)}",
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
             color = ChocolatePrimaryContainer
           )
@@ -663,30 +829,73 @@ fun CartScreen(
       horizontalArrangement = Arrangement.SpaceEvenly,
       verticalAlignment = Alignment.CenterVertically
     ) {
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Default.Verified, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(15.dp))
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text = "Maestría 1924", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+      if (uiState.storefront.trustCraft.isNotBlank()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(Icons.Default.Verified, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(15.dp))
+          Spacer(modifier = Modifier.width(4.dp))
+          Text(text = uiState.storefront.trustCraft, style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+        }
       }
 
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Default.Thermostat, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(15.dp))
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text = "Garantía Frío", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+      if (uiState.storefront.trustCold.isNotBlank()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(Icons.Default.Shield, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(15.dp))
+          Spacer(modifier = Modifier.width(4.dp))
+          Text(text = uiState.storefront.trustCold, style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+        }
       }
 
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Default.Lock, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(15.dp))
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text = "Pago Blindado SSL", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+      if (uiState.storefront.trustPay.isNotBlank()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(Icons.Default.Lock, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(15.dp))
+          Spacer(modifier = Modifier.width(4.dp))
+          Text(text = uiState.storefront.trustPay, style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+        }
       }
     }
 
     Spacer(modifier = Modifier.height(16.dp))
 
+    if (uiState.accountEmail == null && uiState.cartItems.isNotEmpty()) {
+      Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = SecondaryFixed.copy(alpha = 0.5f))
+      ) {
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp),
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Icon(Icons.Default.Info, contentDescription = null, tint = ChocolatePrimaryContainer, modifier = Modifier.size(20.dp))
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(
+            text = "Recuerda: Si aún no has iniciado sesión, al pulsar Pagar se abrirá tu perfil para identificarte.",
+            style = MaterialTheme.typography.bodySmall,
+            color = OnSecondaryFixed
+          )
+        }
+      }
+      Spacer(modifier = Modifier.height(10.dp))
+    }
+
     // Primary CTA Button
     Button(
-      onClick = onCheckout,
+      onClick = {
+        val card = if (uiState.paymentMethod == PaymentMethod.CARD) {
+          CardCheckout(cardNumber, cardMonth, cardYear, cardCvv)
+        } else {
+          null
+        }
+        val yape = if (uiState.paymentMethod == PaymentMethod.YAPE) {
+          YapeCheckout(yapePhone, yapeOtp)
+        } else {
+          null
+        }
+        onCheckout(card, yape)
+      },
+      enabled = !uiState.orderInProgress && uiState.cartItems.isNotEmpty(),
       modifier = Modifier
         .fillMaxWidth()
         .height(56.dp)
@@ -704,7 +913,7 @@ fun CartScreen(
           Icon(Icons.Default.Lock, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(20.dp))
           Spacer(modifier = Modifier.width(8.dp))
           Text(
-            text = "Tramitar Pedido",
+            text = if (uiState.orderInProgress) "Cobrando" else "Pagar ahora",
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = CreamSurface
           )
@@ -712,7 +921,7 @@ fun CartScreen(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text(
-            text = "€${String.format(java.util.Locale.US, "%.2f", uiState.cartTotal)}",
+            text = "S/ ${String.format(java.util.Locale.US, "%.2f", uiState.cartTotal)}",
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
             color = GoldSecondary
           )
@@ -724,6 +933,40 @@ fun CartScreen(
     }
   }
 }
+}
+
+@Composable
+private fun PaymentChoice(
+  label: String,
+  selected: Boolean,
+  container: Color,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+  testTag: String
+) {
+  Button(
+    onClick = onClick,
+    modifier = modifier
+      .height(48.dp)
+      .testTag(testTag)
+      .border(
+        width = if (selected) 0.dp else 1.dp,
+        color = if (selected) Color.Transparent else OutlineGrey,
+        shape = RoundedCornerShape(24.dp)
+      ),
+    colors = ButtonDefaults.buttonColors(
+      containerColor = if (selected) container else CreamSurfaceContainerLowest
+    ),
+    shape = RoundedCornerShape(24.dp),
+    elevation = ButtonDefaults.buttonElevation(defaultElevation = if (selected) 2.dp else 0.dp)
+  ) {
+    Text(
+      text = label,
+      style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+      color = if (selected) Color.White else OnSurfaceDark,
+      maxLines = 1
+    )
+  }
 }
 
 @Composable
@@ -836,7 +1079,7 @@ private fun CartItemCard(
             }
 
             Text(
-              text = "€${String.format(java.util.Locale.US, "%.2f", item.totalPrice)}",
+              text = "S/ ${String.format(java.util.Locale.US, "%.2f", item.totalPrice)}",
               style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
               color = ChocolatePrimaryContainer
             )

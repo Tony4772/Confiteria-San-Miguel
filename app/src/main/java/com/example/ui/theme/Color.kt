@@ -2,7 +2,7 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Confitería San Miguel Palette
+// Fernandina de Jagua Chocolates palette
 val ChocolatePrimary = Color(0xFF020000)
 val ChocolatePrimaryContainer = Color(0xFF2A1711)
 val OnChocolatePrimary = Color(0xFFFFFFFF)
@@ -34,4 +34,4 @@ val OutlineVariant = Color(0xFFD3C3BF)
 val ErrorRed = Color(0xFFBA1A1A)
 val ErrorContainer = Color(0xFFFFDAD6)
 val OnError = Color(0xFFFFFFFF)
-val BizumTeal = Color(0xFF008075)
+val YapePurple = Color(0xFF6C1B7A)

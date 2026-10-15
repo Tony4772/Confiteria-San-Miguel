@@ -7,6 +7,9 @@ import com.example.model.Product
 import com.example.model.SensoryProfile
 
 object SanMiguelData {
+  const val WHATSAPP_DISPLAY = "906 591 037"
+  const val WHATSAPP_E164 = "51906591037"
+
   const val LOGO_URL =
     "https://lh3.googleusercontent.com/aida-public/AB6AXuCLscibk581MuDyRbZh1Qk3xanqEP1jNUzssfC6Aub7GeRWIBnAZSbqDwtQnTcujm1-mVJm-uUeIHiA9lG6yVrgLYG3kz62IvGYXfgahBUYZvrDdDdaEZIoITxZEsv8a8El07YJg91o_yTDvz84Pd6jmwZPcOGjaN9crTH8Bpw7NqISXZiJ_1fwFAi7Q81GBJf2ei41hNBARQojhMchhkZVmONj_nufAw1nd0m8QfiBpv603xkIiGpaqg"
 
@@ -27,7 +30,7 @@ object SanMiguelData {
   val products = listOf(
     Product(
       id = "cofre_real",
-      name = "Cofre Real San Miguel · 18 Bombones",
+      name = "Cofre Real Fernandina de Jagua · 18 Bombones",
       subtitle = "Surtido de grandes cosechas",
       price = 28.50,
       imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDDGmSBlyotzYVmAQTfWQoGRi4gH2FVQDLjynJ9v0Kohbyjyoi-LkbYxsEF3XbWuBszcDW3DvyItjAWEegJKCSLd15fQHD91NttEpXqwQxwEE6wK8ZQXrhVr4RmEJbCdn7DvRDyyRR1B16F6-0QX3tErXTUrYtEI9pBh04BEPnZjeRGFbO6NjJyE7v5UnSWnL5pAD8qRZIEe2nJ1dUy_rQfMGMckPa9e4nJv1gszuCKL5S-B93nvtbuLQ",
@@ -35,31 +38,31 @@ object SanMiguelData {
       reviewsCount = 142,
       badge = "Favorito",
       category = "Para Regalar",
-      origin = "Selección de Terruños Mundiales",
+      origin = "Selección de terruños del Perú",
       description = "Exquisito cofre de madera lacada forrado en terciopelo azul marino, con 18 joyas de cacao pintadas a mano con polvo de oro comestible y ganaches de alta expresión.",
       sensoryProfile = SensoryProfile(cocoaIntensity = 4, sweetnessLevel = 2)
     ),
     Product(
       id = "bombon_oro",
       name = "Bombón Oro Praliné & Sal Marina",
-      subtitle = "Almendra Marcona tostada",
+      subtitle = "Castaña de Madre de Dios",
       price = 2.20,
       imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDYVFiesXLx3NGJpP4XldhO89oRfFrIVCfrSwf5NqmMiqXdE4Qz2vP2y3pKy62AQDNeJ_jyYVRTNf0-usJ427IZAyvYOi8adIf7jEu1IbCfVhandETrVhjOn-CWOhLmggCPLFo2oNvifUP29i_1tn1iRwARCm_muyJpBK60c8L9N_TqCNyWj8NL8jhJ6AeATiijRUF8FC2OO38_8Q1Nj-6tM_32VUzVMUFqP0T3rEmUbbTgyGViZOHIxw",
       rating = 4.9,
       reviewsCount = 88,
       badge = "Praliné",
       category = "Más vendidos",
-      origin = "70% Cacao Ecuador · Avellana IGP Piamonte",
-      description = "Bombón esculpido a mano con lámina de oro de 24k, corazón fundente de praliné tostado y microcristales de flor de sal marina de Cádiz.",
+      origin = "70% Cacao de Piura · Castaña de Madre de Dios",
+      description = "Bombón esculpido a mano con lámina de oro de 24k, corazón fundente de praliné tostado y microcristales de sal de Maras.",
       sensoryProfile = SensoryProfile(
         cocoaIntensity = 4,
         sweetnessLevel = 2,
-        aromaNotes = listOf("Tostado Intenso", "Vainilla Bourbon", "Toque Floral", "Sal Marina Crunch")
+        aromaNotes = listOf("Tostado Intenso", "Vainilla de selva", "Toque Floral", "Sal de Maras")
       )
     ),
     Product(
       id = "trufa_noir",
-      name = "Trufa Noir Coñac & Naranja",
+      name = "Trufa Negra Pisco & Naranja",
       subtitle = "Ganache fundente añejo",
       price = 2.40,
       imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuAwAyRw0RsGOBDVAzz_gSSfCZo4ZaPc2837M1bwFrwcW47mcX_P7ilkTwoj9pMhpZNF49Okl_O4UefOP-JDVwX-Renfhejz1WYVtIPK_LB9wOrItzz6QBRctXA77ZTx6WyMbYKYZPQR1WG74ieUzZtCSoJAw5dkXMDmeMP-LlGkaa7kILLaosRbXakX1fT1U0udDLhD8ARJaKl_BxdUbqpIgE-5YV6IayFyvp5X7ggRlxiC1ECjb6GJhw",
@@ -67,22 +70,22 @@ object SanMiguelData {
       reviewsCount = 64,
       badge = "Cacao 70%",
       category = "Sin gluten",
-      origin = "Cacao Guanaja 70% & Naranja de Sevilla",
-      description = "Profunda trufa de chocolate negro bañada en cacao holandés puro, aromatizada con Coñac reserva y virutas confitadas de piel de naranja valenciana.",
+      origin = "Cacao de San Martín 70% y naranja peruana",
+      description = "Profunda trufa de chocolate negro bañada en cacao puro, aromatizada con pisco y virutas confitadas de piel de naranja.",
       sensoryProfile = SensoryProfile(cocoaIntensity = 5, sweetnessLevel = 2)
     ),
     Product(
       id = "degustacion_origenes",
       name = "Degustación Orígenes · 6 Variedades",
-      subtitle = "Madagascar, Ecuador y Ghana",
+      subtitle = "Piura, Cusco y San Martín",
       price = 16.90,
       imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuC3K4w9dn9m1O0307rMpNerllEMMgGrofWjiean9ikycHdbqtUshS7L4jJMnW9HUDXD2yODylaTVHz-nSmZitmF9QEnPIiTPgnJW3wmM5AAhV4KiMed7-Qi52Ye8auomzHlGHzbbLrUO3pGcFOcSHdxGuXwTxlGufW5c9suSlpThDibXXOdqjOuHVZfon0bEpZqKX4ruMH3oSSImQNUwBiOCgyUvh4P-K8c8IWwSo7mFWIc7YyaaaJphw",
       rating = 4.9,
       reviewsCount = 112,
       badge = "Tasting Box",
       category = "Veganos",
-      origin = "Cacao Single Origin Fino de Aroma",
-      description = "Set de cata guiado con mini tabletas de origen único numeradas, permitiendo recorrer la gama botánica desde las notas frutales de Madagascar hasta el tueste tostado de Ghana.",
+      origin = "Cacao fino de aroma del Perú",
+      description = "Set de cata guiado con mini tabletas de origen único numeradas, desde las notas frutales de Piura hasta el tueste de San Martín.",
       sensoryProfile = SensoryProfile(cocoaIntensity = 4, sweetnessLevel = 1)
     )
   )
@@ -96,8 +99,8 @@ object SanMiguelData {
   val bonbonFlavors = listOf(
     BonbonFlavor(
       id = "pistachio",
-      name = "Ganache Pistacho de Bronte",
-      description = "Pistacho siciliano tostado con chocolate con leche 42%",
+      name = "Ganache de Sacha Inchi",
+      description = "Sacha inchi tostado de San Martín con chocolate con leche 42%",
       notes = "Notas tostadas y salinidad sutil",
       category = "milk",
       imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuC3oK5amoCi7GA3JS0_Wjz2pCHt7tPtE1A_6bcAXI8qRMOGMhSO70Ck680341MYk2vtWGqLM88xiT8qMmMLfdITFt8MbGX7Hi5F9gsxY58qi3cKGqWkTwrviLUFs2y9P0Rf042eje6BB4KSMD0rAYC8m0XHPZd5xL8y8Dr0HInAZqOQ7FfkzBBeVHiK1jdi7a_ZbD2Bhq0k2rC3tURegRHmMnbfLGRLjZrETsEwuP6T-QSFdrzlLT7Eew",
@@ -116,7 +119,7 @@ object SanMiguelData {
     BonbonFlavor(
       id = "caramel",
       name = "Caramelo a la Flor de Sal",
-      description = "Mantequilla bretona ahumada con cristales de sal de Cádiz",
+      description = "Mantequilla de Cajamarca con cristales de sal de Maras",
       notes = "Textura melosa con contraste salino",
       category = "milk",
       imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuA_fgV4VMRDxuso-BrW7qCid7e28mOUHuUHlHdJ7f5y-qMteHPWPcnDu1Xkzhwb_xcExszFU988EGZ4arqVIuVlvtY2wqIO7NY4ZKKJstq_iXl9DrMtqi9cHYLjv-9untjFYOPI-lLCFW34G57apk3H9Lt4VX6nHh-oZzRh1ZidgtHQ8IusfVVqk4OmjboqoFZbKLioIkYnxQSCBTpoOIGqFun_BdAjJNfGTl-H4BXDlZXbg1CJ5Z_rAw",
@@ -124,8 +127,8 @@ object SanMiguelData {
     ),
     BonbonFlavor(
       id = "moka",
-      name = "Moka Arábica Etíope",
-      description = "Infusión en frío de café de altura con cacao Criollo 72%",
+      name = "Moka de Chanchamayo",
+      description = "Infusión en frío de café de Chanchamayo con cacao criollo 72%",
       notes = "Amargor elegante con notas de cardamomo",
       category = "dark",
       imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCRxXJBO_Y2B0oB4-G-3USf47mi-F0rOr3VsWNzYEw1rcgA26EEgCmQ-0o0JZBd_cEt95wbaCcl_gna0XXOKOFqxw7cek-r9JMbeRVEOrLO_PA2mgqb9wc50tH8cbyKNbwZjr-UP3eNydHhPTzDgUMem10KKHuF6U1e0smvlLap5RU6UeiSTRQ7AqEEvyZWluyuyx8j8iB457oxVK9kDhNYBPkJ3OQ3c8EHZ2GlNqAHU-ukqCopxd-nJA",
@@ -133,8 +136,8 @@ object SanMiguelData {
     ),
     BonbonFlavor(
       id = "chuao",
-      name = "Chuao Reserva 75%",
-      description = "Origen único Venezuela, notas de ciruela y frutos del bosque",
+      name = "Piura Blanco 75%",
+      description = "Cacao blanco de Piura, notas de ciruela y frutos del bosque",
       notes = "Cacao puro intenso sin aditivos",
       category = "dark",
       imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCHP9txG8FsdlHwyecvwu9NoGaWc-CaYuosPQgDV6VNopEVNVcSXZ9UGdfUlekiTRERPRT_nig-I6aYOS-8DqJWNx83KvqjT1cz5WF5RWqAMxUVeZ-WbwCDUbY40yacnddRiaeMrJn7iQ8BhojKqwLfiz9BgvNaqeB9jPB2WsfytMSXvEOjXSE6mWCBjXjToPBgpd9cJo97UNdyIPELp9mJJWUaMTXuIGvMdlcdTsdvrFKNRuprki07vg",
@@ -142,8 +145,8 @@ object SanMiguelData {
     ),
     BonbonFlavor(
       id = "sherry",
-      name = "Pedro Ximénez & Naranja",
-      description = "Solera de Jerez centenaria con piel de naranja amarga de Sevilla",
+      name = "Pisco & Naranja",
+      description = "Pisco acholado con piel de naranja peruana",
       notes = "Cálido y espirituoso",
       category = "liqueur",
       imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCJHa4hiwT7T2W7TK-97pNJnauyj7YfavoMax0Lc6zjRi35hpJ2uh2myb4jFxmJswzRw6Kl7Xra2lSP0i_G2muoiyhZzqLRWZPEvby0wbMRabBPzV7RzTZoLnJMQn0hENpNdc7Yybgg639xKdgOQ3jLo05AW0CBv-1akVGISX8m4_MoHDwJj126IVoqmnGcH_S0xzpD7PZqSpyz3l3UciyAEi0LEdvN2XCjNcjKmy_V3L8KB4tYX7Ix4g",
@@ -164,7 +167,7 @@ object SanMiguelData {
         Pair("Praliné Pistacho", 3),
         Pair("Trufa Frambuesa", 3),
         Pair("Ganache 72% Origen", 4),
-        Pair("Caramelo Sal Guérande", 2)
+        Pair("Caramelo Sal de Maras", 2)
       )
     ),
     CartItem(

@@ -1,17 +1,21 @@
 package com.example
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,18 +35,25 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.data.TaxReceipts
 import com.example.ui.components.AppBottomNav
 import com.example.ui.components.AppTopBar
 import com.example.ui.components.OrderSuccessDialog
@@ -53,8 +64,11 @@ import com.example.ui.screens.CartScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.ProductDetailScreen
 import com.example.ui.screens.ProfileScreen
+import com.example.ui.screens.ShopAdminScreen
+import com.example.ui.splash.EbyzomSplash
 import com.example.ui.theme.ChocolatePrimaryContainer
 import com.example.ui.theme.CreamBackground
+import com.example.ui.theme.GoldSecondary
 import com.example.ui.theme.GoldSecondaryContainer
 import com.example.ui.theme.MyApplicationTheme
 import com.example.viewmodel.CurrentScreen
@@ -66,8 +80,32 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
     setContent {
-      MyApplicationTheme {
-        MainAppContent()
+      var showSplash by remember { mutableStateOf(true) }
+      if (showSplash) {
+        EbyzomSplash(
+          appName = "Fernandina de Jagua Chocolates",
+          tagline = "El arte del cacao puro",
+          logo = painterResource(R.drawable.logo_wordmark),
+          paper = CreamBackground,
+          ink = ChocolatePrimaryContainer,
+          inkSoft = GoldSecondary,
+          onFinished = { showSplash = false },
+        )
+      } else {
+        val view = LocalView.current
+        val darkTheme = isSystemInDarkTheme()
+        if (!view.isInEditMode) {
+          SideEffect {
+            val window = (view.context as Activity).window
+            WindowCompat.getInsetsController(window, view).apply {
+              isAppearanceLightStatusBars = !darkTheme
+              isAppearanceLightNavigationBars = !darkTheme
+            }
+          }
+        }
+        MyApplicationTheme {
+          MainAppContent()
+        }
       }
     }
   }
@@ -77,6 +115,14 @@ class MainActivity : ComponentActivity() {
 fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val context = LocalContext.current
+  val savePdf = rememberLauncherForActivityResult(
+    ActivityResultContracts.CreateDocument("application/pdf")
+  ) { uri ->
+    val pdf = viewModel.currentReceiptPdf()
+    if (uri != null && pdf != null) {
+      context.contentResolver.openOutputStream(uri)?.use { output -> output.write(pdf) }
+    }
+  }
 
   // Handle hardware back button
   val isNotHome = uiState.currentScreen !is CurrentScreen.Home
@@ -103,7 +149,7 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
     topBar = {
       AppTopBar(
         isDetailScreen = isDetail,
-        title = if (isDetail) "Detalle De Bombón" else "Confitería San Miguel",
+        title = if (isDetail) "Detalle De Bombón" else "Fernandina de Jagua Chocolates",
         onBackClick = {
           if (!viewModel.navigateBack()) {
             viewModel.navigateTo(CurrentScreen.Home)
@@ -115,7 +161,7 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
             action = Intent.ACTION_SEND
             putExtra(
               Intent.EXTRA_TEXT,
-              "Descubre la alta confitería y bombones de autor de Confitería San Miguel (Madrid, 1928)."
+              "Descubre los bombones de autor de Fernandina de Jagua Chocolates. Recojo en ${uiState.storefront.storeAddress}."
             )
             type = "text/plain"
           }
@@ -142,12 +188,12 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
         is CurrentScreen.Home -> {
           HomeScreen(
             uiState = uiState,
-            onNavigateToBuilder = { viewModel.navigateTo(CurrentScreen.BoxBuilder) },
             onProductClick = { viewModel.openProductDetail(it) },
             onAddToCart = { viewModel.addProductToCart(it) },
             onToggleFavorite = { viewModel.toggleFavorite(it) },
             onFilterSelect = { viewModel.setFilter(it) },
-            onOpenSustainability = { viewModel.toggleSustainability(true) }
+            onOpenSustainability = { viewModel.toggleSustainability(true) },
+            onNavigateToBuilder = { viewModel.navigateTo(CurrentScreen.BoxBuilder) }
           )
         }
 
@@ -155,10 +201,9 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
           BoxBuilderScreen(
             uiState = uiState,
             onSelectTier = { viewModel.selectBoxTier(it) },
-            onModifyFlavorCount = { id, delta -> viewModel.modifyBonbonCount(id, delta) },
-            onSelectCategory = { viewModel.setFlavorCategory(it) },
-            onAutoFill = { viewModel.autoFillFavorites() },
-            onConfirmBox = { viewModel.confirmBoxToCart() }
+            onModifyCount = { id, delta -> viewModel.modifyBonbonCount(id, delta) },
+            onClearBox = { viewModel.clearBox() },
+            onConfirm = { viewModel.confirmBoxToCart() }
           )
         }
 
@@ -171,8 +216,9 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
             onSelectTimeSlot = { viewModel.setTimeSlot(it) },
             onToggleGiftWrap = { viewModel.setGiftWrap(it) },
             onUpdateGiftMessage = { viewModel.setGiftCardMessage(it) },
-            onCheckout = { viewModel.processOrder() },
-            onNavigateToBuilder = { viewModel.navigateTo(CurrentScreen.BoxBuilder) }
+            onSelectPayment = { viewModel.setPaymentMethod(it) },
+            onCheckout = { card, yape -> viewModel.processOrder(card, yape) },
+            onNavigateToBuilder = { viewModel.navigateTo(CurrentScreen.Home) }
           )
         }
 
@@ -181,7 +227,6 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
             product = screen.product,
             uiState = uiState,
             onGallerySelect = { viewModel.setDetailGalleryIndex(it) },
-            onPackSelect = { viewModel.setDetailPack(it) },
             onChangeQuantity = { viewModel.changeDetailQuantity(it) },
             onToggleRibbon = { viewModel.toggleDetailRibbon(it) },
             onToggleCard = { viewModel.toggleDetailCard(it) },
@@ -197,7 +242,34 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
           ProfileScreen(
             uiState = uiState,
             onProductClick = { viewModel.openProductDetail(it) },
-            onNavigateToBuilder = { viewModel.navigateTo(CurrentScreen.BoxBuilder) }
+            onNavigateToBuilder = { viewModel.navigateTo(CurrentScreen.Home) },
+            onRegister = { name, email, password -> viewModel.register(name, email, password) },
+            onSignIn = { email, password -> viewModel.signIn(email, password) },
+            onGoogleSignIn = { viewModel.signInWithGoogle(it) },
+            onAuthMessage = { viewModel.showToast(it) },
+            onSignOut = { viewModel.signOut() },
+            onOpenShop = { viewModel.navigateTo(CurrentScreen.ShopAdmin) }
+          )
+        }
+
+        is CurrentScreen.ShopAdmin -> {
+          ShopAdminScreen(
+            uiState = uiState,
+            onBack = { viewModel.navigateTo(CurrentScreen.Profile) },
+            onEnsureCatalog = { viewModel.ensureCatalog() },
+            onEnsureStorefront = { viewModel.ensureStorefront() },
+            onSave = { viewModel.saveProduct(it) },
+            onDelete = { viewModel.deleteProduct(it) },
+            onUploadImage = { productId, uri, onUploaded ->
+              viewModel.uploadProductImage(productId, uri, onUploaded)
+            },
+            onSaveCopy = { viewModel.saveStorefront(it) },
+            onSaveBoxTiers = { viewModel.saveBoxTiers(it) },
+            onSaveCategory = { viewModel.saveCategory(it) },
+            onDeleteCategory = { viewModel.deleteCategory(it) },
+            onUploadStoreImage = { folder, uri, onUploaded ->
+              viewModel.uploadStoreImage(folder, uri, onUploaded)
+            }
           )
         }
       }
@@ -244,6 +316,7 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
   if (uiState.isSearchOpen) {
     SearchDialog(
       searchQuery = uiState.searchQuery,
+      products = uiState.catalog,
       onQueryChange = { viewModel.setSearchQuery(it) },
       onProductClick = { viewModel.openProductDetail(it) },
       onDismiss = {
@@ -264,6 +337,22 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
   if (uiState.isOrderSuccessOpen) {
     OrderSuccessDialog(
       orderId = uiState.orderPlacedId,
+      customerName = uiState.accountName.orEmpty(),
+      receiptBusy = uiState.receiptBusy,
+      receiptLabel = uiState.receiptLabel,
+      receiptError = uiState.receiptError,
+      onRequestReceipt = { kind, name, document -> viewModel.requestReceipt(kind, name, document) },
+      onDownload = {
+        val label = uiState.receiptLabel ?: "comprobante"
+        savePdf.launch("$label.pdf")
+      },
+      onPrint = {
+        val pdf = viewModel.currentReceiptPdf()
+        val label = uiState.receiptLabel ?: "Comprobante"
+        if (pdf != null) {
+          TaxReceipts.print(context, label, pdf)
+        }
+      },
       onDismiss = { viewModel.dismissOrderSuccess() }
     )
   }

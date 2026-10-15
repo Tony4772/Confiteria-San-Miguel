@@ -9,12 +9,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -35,8 +38,13 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,10 +52,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.data.SanMiguelData
 import com.example.model.Product
 import com.example.ui.components.SanMiguelImage
 import com.example.ui.theme.ChocolatePrimaryContainer
@@ -111,7 +120,7 @@ fun SustainabilityBottomSheet(
               color = ChocolatePrimaryContainer
             )
             Text(
-              text = "Obrador Madrid · Comercio Justo",
+              text = "Chocolatería San Miguel · Comercio Justo",
               style = MaterialTheme.typography.bodySmall,
               color = OnSurfaceVariant
             )
@@ -137,7 +146,7 @@ fun SustainabilityBottomSheet(
       Spacer(modifier = Modifier.height(12.dp))
 
       Text(
-        text = "Desde 1928, en Confitería San Miguel adquirimos el 100% de nuestras habas de cacao directamente a pequeñas cooperativas agroforestales en Chuao (Venezuela), Sambirano (Madagascar) y Esmeraldas (Ecuador).",
+        text = "En Fernandina de Jagua Chocolates adquirimos el 100% de nuestras habas de cacao directamente a pequeñas cooperativas de Piura, Cusco y San Martín.",
         style = MaterialTheme.typography.bodyMedium,
         color = OnSurfaceDark,
         lineHeight = 22.sp
@@ -193,14 +202,15 @@ fun SustainabilityBottomSheet(
 @Composable
 fun SearchDialog(
   searchQuery: String,
+  products: List<Product>,
   onQueryChange: (String) -> Unit,
   onProductClick: (Product) -> Unit,
   onDismiss: () -> Unit
 ) {
   val filteredProducts = if (searchQuery.isBlank()) {
-    SanMiguelData.products
+    products
   } else {
-    SanMiguelData.products.filter {
+    products.filter {
       it.name.contains(searchQuery, ignoreCase = true) ||
           it.subtitle.contains(searchQuery, ignoreCase = true) ||
           it.description.contains(searchQuery, ignoreCase = true)
@@ -218,7 +228,7 @@ fun SearchDialog(
         verticalAlignment = Alignment.CenterVertically
       ) {
         Text(
-          text = "Buscar en Obrador",
+          text = "Buscar en la Tienda",
           style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif),
           color = ChocolatePrimaryContainer
         )
@@ -289,7 +299,7 @@ fun SearchDialog(
                 )
               }
               Text(
-                text = "€${String.format(java.util.Locale.US, "%.2f", product.price)}",
+                text = "S/ ${String.format(java.util.Locale.US, "%.2f", product.price)}",
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                 color = GoldSecondary
               )
@@ -304,8 +314,19 @@ fun SearchDialog(
 @Composable
 fun OrderSuccessDialog(
   orderId: String,
+  customerName: String,
+  receiptBusy: Boolean,
+  receiptLabel: String?,
+  receiptError: String?,
+  onRequestReceipt: (kind: String, name: String, document: String) -> Unit,
+  onDownload: () -> Unit,
+  onPrint: () -> Unit,
   onDismiss: () -> Unit
 ) {
+  var kind by remember { mutableStateOf("boleta") }
+  var name by remember(customerName) { mutableStateOf(customerName) }
+  var document by remember { mutableStateOf("") }
+
   AlertDialog(
     onDismissRequest = onDismiss,
     confirmButton = {
@@ -318,7 +339,7 @@ fun OrderSuccessDialog(
           .height(48.dp)
           .testTag("order_success_cta")
       ) {
-        Text("Volver al Obrador", color = CreamSurfaceContainerLowest, fontWeight = FontWeight.Bold)
+        Text("Volver a la Tienda", color = CreamSurfaceContainerLowest, fontWeight = FontWeight.Bold)
       }
     },
     containerColor = CreamBackground,
@@ -354,7 +375,10 @@ fun OrderSuccessDialog(
     },
     text = {
       Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+          .fillMaxWidth()
+          .heightIn(max = 360.dp)
+          .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
         Text(
@@ -367,11 +391,77 @@ fun OrderSuccessDialog(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-          text = "Nuestros maestros chocolateros están preparando tu selección en el taller de la Plaza Mayor. Recibirás tu caja en transporte refrigerado a 16°C.",
+          text = "Emitimos boleta y factura electrónica. Puedes descargarla o imprimirla ahora.",
           style = MaterialTheme.typography.bodyMedium,
           color = OnSurfaceDark,
           textAlign = TextAlign.Center
         )
+        Spacer(modifier = Modifier.height(12.dp))
+        if (receiptLabel == null) {
+          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TextButton(onClick = { kind = "boleta" }) {
+              Text(if (kind == "boleta") "Boleta" else "boleta", color = ChocolatePrimaryContainer)
+            }
+            TextButton(onClick = { kind = "factura" }) {
+              Text(if (kind == "factura") "Factura" else "factura", color = ChocolatePrimaryContainer)
+            }
+          }
+          OutlinedTextField(
+            value = name,
+            onValueChange = { name = it.take(150) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = { Text(if (kind == "factura") "Razón social" else "Nombre") }
+          )
+          Spacer(modifier = Modifier.height(8.dp))
+          OutlinedTextField(
+            value = document,
+            onValueChange = { document = it.filter(Char::isDigit).take(if (kind == "factura") 11 else 8) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = { Text(if (kind == "factura") "RUC" else "DNI, si lo tienes") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+          )
+          receiptError?.let { message ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = message, color = ChocolatePrimaryContainer, textAlign = TextAlign.Center)
+          }
+          Spacer(modifier = Modifier.height(8.dp))
+          Button(
+            onClick = { onRequestReceipt(kind, name, document) },
+            enabled = !receiptBusy,
+            colors = ButtonDefaults.buttonColors(containerColor = GoldSecondary),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Text(if (receiptBusy) "Emitiendo" else "Emitir comprobante", color = OnGoldSecondaryContainer)
+          }
+        } else {
+          Text(
+            text = receiptLabel,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = ChocolatePrimaryContainer,
+            textAlign = TextAlign.Center
+          )
+          Spacer(modifier = Modifier.height(8.dp))
+          Button(
+            onClick = onDownload,
+            colors = ButtonDefaults.buttonColors(containerColor = GoldSecondary),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Text("Descargar PDF", color = OnGoldSecondaryContainer)
+          }
+          Spacer(modifier = Modifier.height(8.dp))
+          Button(
+            onClick = onPrint,
+            colors = ButtonDefaults.buttonColors(containerColor = ChocolatePrimaryContainer),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Text("Imprimir", color = CreamSurfaceContainerLowest)
+          }
+        }
       }
     }
   )
