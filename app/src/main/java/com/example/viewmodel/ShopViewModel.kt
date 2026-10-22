@@ -359,6 +359,32 @@ class ShopViewModel : ViewModel() {
     AccountRepository.signOut()
   }
 
+  fun deleteAccount(onComplete: () -> Unit) {
+    viewModelScope.launch {
+      _uiState.update { it.copy(accountBusy = true) }
+      try {
+        AccountRepository.deleteAccount()
+        _uiState.update {
+          it.copy(
+            accountBusy = false,
+            accountName = null,
+            accountEmail = null,
+            favorites = emptySet(),
+            toastMessage = "Cuenta y datos eliminados correctamente"
+          )
+        }
+        onComplete()
+      } catch (error: Exception) {
+        _uiState.update {
+          it.copy(
+            accountBusy = false,
+            toastMessage = "No se pudo eliminar la cuenta: ${error.localizedMessage ?: "Error"}"
+          )
+        }
+      }
+    }
+  }
+
   fun ensureStorefront() {
     val state = _uiState.value
     if (!state.isShopOwner || !state.categoriesSynced || state.storeCategories.isNotEmpty() || state.hadCategories) {

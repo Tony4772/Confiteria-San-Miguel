@@ -92,9 +92,11 @@ fun ProfileScreen(
   onGoogleSignIn: (idToken: String) -> Unit,
   onAuthMessage: (String) -> Unit,
   onSignOut: () -> Unit,
-  onOpenShop: () -> Unit
+  onOpenShop: () -> Unit,
+  onDeleteAccount: () -> Unit
 ) {
   val scrollState = rememberScrollState()
+  var showDeleteDialog by remember { mutableStateOf(false) }
 
   BoxWithConstraints(
     modifier = Modifier
@@ -208,6 +210,37 @@ fun ProfileScreen(
       ) {
         Text("Cerrar sesión")
       }
+      Spacer(modifier = Modifier.height(8.dp))
+      TextButton(
+        onClick = { showDeleteDialog = true },
+        modifier = Modifier.fillMaxWidth()
+      ) {
+        Text("Eliminar mi cuenta y datos", color = ErrorRed, fontWeight = FontWeight.Bold)
+      }
+    }
+
+    if (showDeleteDialog) {
+      androidx.compose.material3.AlertDialog(
+        onDismissRequest = { showDeleteDialog = false },
+        title = { Text("Eliminar cuenta y datos") },
+        text = { Text("¿Estás seguro de que deseas eliminar tu cuenta de Fernandina de Jagua Chocolates y todos tus datos asociados? Esta acción es permanente.") },
+        confirmButton = {
+          Button(
+            onClick = {
+              showDeleteDialog = false
+              onDeleteAccount()
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = ErrorRed)
+          ) {
+            Text("Eliminar", color = CreamSurfaceContainerLowest)
+          }
+        },
+        dismissButton = {
+          TextButton(onClick = { showDeleteDialog = false }) {
+            Text("Cancelar")
+          }
+        }
+      )
     }
 
     Spacer(modifier = Modifier.height(20.dp))

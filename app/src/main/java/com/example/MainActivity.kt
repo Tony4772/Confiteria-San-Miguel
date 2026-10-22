@@ -248,7 +248,8 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
             onGoogleSignIn = { viewModel.signInWithGoogle(it) },
             onAuthMessage = { viewModel.showToast(it) },
             onSignOut = { viewModel.signOut() },
-            onOpenShop = { viewModel.navigateTo(CurrentScreen.ShopAdmin) }
+            onOpenShop = { viewModel.navigateTo(CurrentScreen.ShopAdmin) },
+            onDeleteAccount = { viewModel.deleteAccount {} }
           )
         }
 

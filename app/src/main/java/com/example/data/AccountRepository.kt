@@ -72,6 +72,17 @@ object AccountRepository {
   suspend fun setFavorites(uid: String, favorites: Set<String>) {
     users().document(uid).update("favoriteIds", favorites.toList()).await()
   }
+
+  suspend fun deleteAccount() {
+    val auth = FirebaseAuth.getInstance()
+    val user = auth.currentUser ?: return
+    val uid = user.uid
+    try {
+      users().document(uid).delete().await()
+    } catch (_: Exception) {}
+    user.delete().await()
+    auth.signOut()
+  }
 }
 
 data class LoadedAccount(
