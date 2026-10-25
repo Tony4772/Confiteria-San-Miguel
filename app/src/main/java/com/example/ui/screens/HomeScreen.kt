@@ -29,6 +29,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Eco
@@ -48,6 +49,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.platform.LocalContext
@@ -106,7 +108,8 @@ fun HomeScreen(
   onToggleFavorite: (String) -> Unit,
   onFilterSelect: (String) -> Unit,
   onOpenSustainability: () -> Unit,
-  onNavigateToBuilder: () -> Unit
+  onNavigateToBuilder: () -> Unit,
+  onOpenReclamaciones: () -> Unit = {}
 ) {
   val scrollState = rememberScrollState()
   var productsY by remember { mutableIntStateOf(0) }
@@ -693,6 +696,42 @@ fun HomeScreen(
               modifier = Modifier.padding(horizontal = 24.dp),
               color = OutlineGrey
             )
+          }
+
+          // Libro de Reclamaciones
+          Spacer(modifier = Modifier.height(14.dp))
+          Surface(
+            onClick = onOpenReclamaciones,
+            shape = RoundedCornerShape(20.dp),
+            color = CreamSurfaceContainerLow,
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFB71C1C).copy(alpha = 0.35f))
+          ) {
+            Row(
+              modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              Box(
+                modifier = Modifier
+                  .size(20.dp)
+                  .clip(CircleShape)
+                  .background(Color(0xFFB71C1C)),
+                contentAlignment = Alignment.Center
+              ) {
+                Icon(
+                  imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                  contentDescription = null,
+                  tint = Color.White,
+                  modifier = Modifier.size(12.dp)
+                )
+              }
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                text = "Libro de Reclamaciones · Ley N° 29571",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = ChocolatePrimaryContainer
+              )
+            }
           }
         }
       }

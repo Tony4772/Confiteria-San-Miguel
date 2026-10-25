@@ -40,6 +40,7 @@ sealed interface CurrentScreen {
   data class ProductDetail(val product: Product) : CurrentScreen
   data object Profile : CurrentScreen
   data object ShopAdmin : CurrentScreen
+  data object Reclamaciones : CurrentScreen
 }
 
 data class ShopUiState(
@@ -479,6 +480,42 @@ class ShopViewModel : ViewModel() {
       if (valid) {
         onSuccess()
       }
+    }
+  }
+
+  fun submitReclamacion(
+    nombreCompleto: String,
+    tipoDocumento: String,
+    numeroDocumento: String,
+    telefono: String,
+    email: String,
+    tipoReclamo: String,
+    descripcionBien: String,
+    descripcionProblema: String,
+    montoReclamado: Double?,
+    pedidoSolicitado: String,
+    onSuccess: (String) -> Unit,
+    onError: (String) -> Unit
+  ) {
+    viewModelScope.launch {
+      val state = _uiState.value
+      val result = CmsRepository.submitReclamacion(
+        nombreCompleto = nombreCompleto,
+        tipoDocumento = tipoDocumento,
+        numeroDocumento = numeroDocumento,
+        telefono = telefono,
+        email = email,
+        tipoReclamo = tipoReclamo,
+        descripcionBien = descripcionBien,
+        descripcionProblema = descripcionProblema,
+        montoReclamado = montoReclamado,
+        pedidoSolicitado = pedidoSolicitado,
+        razonSocialProveedor = state.storefront.brandCompanyName.ifBlank { "EBYZOM E.I.R.L." }
+      )
+      result.fold(
+        onSuccess = { codigo -> onSuccess(codigo) },
+        onFailure = { err -> onError(err.message ?: "Error al registrar la reclamación") }
+      )
     }
   }
 

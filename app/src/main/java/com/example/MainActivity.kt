@@ -66,6 +66,7 @@ import com.example.ui.screens.CatalogScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.ProductDetailScreen
 import com.example.ui.screens.ProfileScreen
+import com.example.ui.screens.ReclamacionesScreen
 import com.example.ui.screens.ShopAdminScreen
 import com.example.ui.screens.VisitUsScreen
 import com.example.ui.splash.EbyzomSplash
@@ -158,6 +159,7 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
           uiState.currentScreen is CurrentScreen.VisitUs -> "Visítanos · San Miguel"
           uiState.currentScreen is CurrentScreen.Cart -> "Tu Carrito"
           uiState.currentScreen is CurrentScreen.Profile -> "Mi Cuenta"
+          uiState.currentScreen is CurrentScreen.Reclamaciones -> "Libro de Reclamaciones"
           else -> "Fernandina de Jagua"
         },
         onBackClick = {
@@ -203,7 +205,8 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
             onToggleFavorite = { viewModel.toggleFavorite(it) },
             onFilterSelect = { viewModel.setFilter(it) },
             onOpenSustainability = { viewModel.toggleSustainability(true) },
-            onNavigateToBuilder = { viewModel.navigateTo(CurrentScreen.Catalog) }
+            onNavigateToBuilder = { viewModel.navigateTo(CurrentScreen.Catalog) },
+            onOpenReclamaciones = { viewModel.navigateTo(CurrentScreen.Reclamaciones) }
           )
         }
 
@@ -290,7 +293,8 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
             onSignOut = { viewModel.signOut() },
             onOpenShop = { viewModel.navigateTo(CurrentScreen.ShopAdmin) },
             onDeleteAccount = { viewModel.deleteAccount {} },
-            onCmsAdminLogin = { viewModel.loginCmsAdmin(it) { viewModel.navigateTo(CurrentScreen.ShopAdmin) } }
+            onCmsAdminLogin = { viewModel.loginCmsAdmin(it) { viewModel.navigateTo(CurrentScreen.ShopAdmin) } },
+            onOpenReclamaciones = { viewModel.navigateTo(CurrentScreen.Reclamaciones) }
           )
         }
 
@@ -311,6 +315,20 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
             onDeleteCategory = { viewModel.deleteCategory(it) },
             onUploadStoreImage = { folder, uri, onUploaded ->
               viewModel.uploadStoreImage(folder, uri, onUploaded)
+            }
+          )
+        }
+
+        is CurrentScreen.Reclamaciones -> {
+          ReclamacionesScreen(
+            uiState = uiState,
+            onBack = {
+              if (!viewModel.navigateBack()) {
+                viewModel.navigateTo(CurrentScreen.Home)
+              }
+            },
+            onSubmit = { nombre, tipoDoc, numDoc, tel, email, tipo, descBien, descProb, monto, pedido, onSucc, onErr ->
+              viewModel.submitReclamacion(nombre, tipoDoc, numDoc, tel, email, tipo, descBien, descProb, monto, pedido, onSucc, onErr)
             }
           )
         }

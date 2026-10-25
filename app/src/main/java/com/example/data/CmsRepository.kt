@@ -298,4 +298,62 @@ object CmsRepository {
     val match = regex.find(raw)?.value ?: return 0.0
     return match.replace(',', '.').toDoubleOrNull() ?: 0.0
   }
+
+  suspend fun submitReclamacion(
+    nombreCompleto: String,
+    tipoDocumento: String,
+    numeroDocumento: String,
+    telefono: String,
+    email: String,
+    tipoReclamo: String,
+    descripcionBien: String,
+    descripcionProblema: String,
+    montoReclamado: Double?,
+    pedidoSolicitado: String,
+    rucProveedor: String = "00000000000",
+    razonSocialProveedor: String = "EBYZOM E.I.R.L."
+  ): Result<String> = withContext(Dispatchers.IO) {
+    try {
+      val bodyJson = JSONObject().apply {
+        put("proveedor", JSONObject().apply {
+          put("ruc", rucProveedor)
+          put("razonSocial", razonSocialProveedor)
+        })
+        put("consumidor", JSONObject().apply {
+          put("nombreCompleto", nombreCompleto)
+          put("tipoDocumento", tipoDocumento)
+          put("numeroDocumento", numeroDocumento)
+          put("telefono", telefono)
+          put("email", email)
+        })
+        put("reclamo", JSONObject().apply {
+          put("tipo", tipoReclamo)
+          put("descripcionBien", descripcionBien)
+          put("descripcionProblema", descripcionProblema)
+          if (montoReclamado != null) put("montoReclamado", montoReclamado)
+          put("pedidoSolicitado", pedidoSolicitado)
+        })
+      }
+
+      val request = Request.Builder()
+        .url("$CMS_API_BASE/reclamaciones")
+        .header("Content-Type", "application/json")
+        .post(bodyJson.toString().toRequestBody(JSON_MEDIA_TYPE))
+        .build()
+
+      http.newCall(request).execute().use { response ->
+        val respBody = response.body?.string() ?: ""
+        val json = if (respBody.isNotBlank()) JSONObject(respBody) else JSONObject()
+        if (response.isSuccessful && json.optBoolean("success", false)) {
+          val codigo = json.optString("codigo", "REGISTRADO")
+          Result.success(codigo)
+        } else {
+          val err = json.optString("error", "Error al enviar el reclamo (${response.code})")
+          Result.failure(Exception(err))
+        }
+      }
+    } catch (e: Exception) {
+      Result.failure(e)
+    }
+  }
 }

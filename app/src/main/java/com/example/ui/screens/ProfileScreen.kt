@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Favorite
@@ -94,7 +95,8 @@ fun ProfileScreen(
   onSignOut: () -> Unit,
   onOpenShop: () -> Unit,
   onDeleteAccount: () -> Unit,
-  onCmsAdminLogin: (String) -> Unit = {}
+  onCmsAdminLogin: (String) -> Unit = {},
+  onOpenReclamaciones: () -> Unit = {}
 ) {
   val scrollState = rememberScrollState()
   var showDeleteDialog by remember { mutableStateOf(false) }
@@ -518,6 +520,63 @@ fun ProfileScreen(
           icon = Icons.Default.CardGiftcard,
           title = uiState.storefront.giftTitle,
           subtitle = uiState.storefront.giftDetail
+        )
+      }
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    // Libro de Reclamaciones Card (Conforme a Ley N° 29571)
+    Card(
+      modifier = Modifier
+        .fillMaxWidth()
+        .clickable { onOpenReclamaciones() },
+      shape = RoundedCornerShape(16.dp),
+      colors = CardDefaults.cardColors(containerColor = CreamSurfaceContainerLowest),
+      border = androidx.compose.foundation.BorderStroke(1.dp, androidx.compose.ui.graphics.Color(0xFFB71C1C).copy(alpha = 0.35f)),
+      elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+      ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+          Box(
+            modifier = Modifier
+              .size(36.dp)
+              .clip(CircleShape)
+              .background(androidx.compose.ui.graphics.Color(0xFFB71C1C)),
+            contentAlignment = Alignment.Center
+          ) {
+            Icon(
+              imageVector = Icons.AutoMirrored.Filled.MenuBook,
+              contentDescription = null,
+              tint = androidx.compose.ui.graphics.Color.White,
+              modifier = Modifier.size(18.dp)
+            )
+          }
+          Spacer(modifier = Modifier.width(12.dp))
+          Column {
+            Text(
+              text = "Libro de Reclamaciones",
+              style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+              color = ChocolatePrimaryContainer
+            )
+            Text(
+              text = "Conforme a la Ley N° 29571 · Registro virtual",
+              style = MaterialTheme.typography.bodySmall,
+              color = OnSurfaceVariant
+            )
+          }
+        }
+        Icon(
+          imageVector = Icons.Default.ChevronRight,
+          contentDescription = null,
+          tint = OutlineGrey,
+          modifier = Modifier.size(18.dp)
         )
       }
     }
