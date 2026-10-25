@@ -15,22 +15,32 @@ import java.util.UUID
 object CatalogRepository {
   private const val DATABASE_ID = "tienda"
 
-  private fun products() = FirebaseFirestore.getInstance(DATABASE_ID).collection("products")
+  private fun products() = try {
+    FirebaseFirestore.getInstance(DATABASE_ID).collection("products")
+  } catch (_: Exception) {
+    FirebaseFirestore.getInstance().collection("products")
+  }
 
   fun observe(includeHidden: Boolean): Flow<List<Product>> = callbackFlow {
-    val query = if (includeHidden) {
-      products()
-    } else {
-      products().whereEqualTo("visible", true)
-    }
-    val registration: ListenerRegistration = query.addSnapshotListener { snapshot, error ->
-      if (error != null || snapshot == null) {
-        return@addSnapshotListener
+    try {
+      val query = if (includeHidden) {
+        products()
+      } else {
+        products().whereEqualTo("visible", true)
       }
-      val items = snapshot.documents.mapNotNull { document -> document.toProduct() }
-      trySend(items)
+      val registration: ListenerRegistration = query.addSnapshotListener { snapshot, error ->
+        if (error != null || snapshot == null) {
+          trySend(SanMiguelData.products)
+          return@addSnapshotListener
+        }
+        val items = snapshot.documents.mapNotNull { document -> document.toProduct() }
+        trySend(if (items.isNotEmpty()) items else SanMiguelData.products)
+      }
+      awaitClose { registration.remove() }
+    } catch (_: Exception) {
+      trySend(SanMiguelData.products)
+      awaitClose {}
     }
-    awaitClose { registration.remove() }
   }
 
   suspend fun save(product: Product) {
@@ -54,16 +64,35 @@ private fun DocumentSnapshot.toProduct(): Product? {
   val priceValue = get("price")
   val price = if (priceValue is Number) priceValue.toDouble() else 0.0
   val badge = getString("badge").orEmpty()
+  val intensityVal = get("intensity")
+  val fruitVal = get("fruitNotes")
+  val persistVal = get("persistence")
+
   return Product(
     id = id,
     name = name,
     subtitle = getString("subtitle").orEmpty(),
     price = price,
     imageUrl = getString("imageUrl").orEmpty(),
+    detailImageUrl = getString("detailImageUrl").orEmpty(),
     badge = badge.ifBlank { null },
-    category = getString("category").orEmpty().ifBlank { "Bombones" },
-    origin = getString("origin").orEmpty(),
+    badgeColor = getString("badgeColor").orEmpty().ifBlank { "primary" },
+    category = getString("category").orEmpty().ifBlank { "puras" },
+    categoryLabel = getString("categoryLabel").orEmpty().ifBlank { "Barras Puras" },
+    origin = getString("origin").orEmpty().ifBlank { "Cacao Peruano Seleccionado · San Miguel, Lima" },
     description = getString("description").orEmpty(),
+    shortDesc = getString("shortDesc").orEmpty(),
+    fullDesc = getString("fullDesc").orEmpty(),
+    ingredients = getString("ingredients").orEmpty(),
+    netWeight = getString("netWeight").orEmpty().ifBlank { "80 gramos" },
+    aromaProfile = getString("aromaProfile").orEmpty(),
+    conservation = getString("conservation").orEmpty().ifBlank { "16°C – 19°C · Lugar fresco y seco" },
+    intensity = if (intensityVal is Number) intensityVal.toDouble() else 4.0,
+    intensityDesc = getString("intensityDesc").orEmpty(),
+    fruitNotes = if (fruitVal is Number) fruitVal.toDouble() else 3.5,
+    fruitNotesDesc = getString("fruitNotesDesc").orEmpty(),
+    persistence = if (persistVal is Number) persistVal.toDouble() else 4.5,
+    persistenceDesc = getString("persistenceDesc").orEmpty(),
     visible = getBoolean("visible") ?: true
   )
 }
@@ -74,10 +103,25 @@ private fun Product.toDocument(): Map<String, Any> {
     "subtitle" to subtitle,
     "price" to price,
     "imageUrl" to imageUrl,
+    "detailImageUrl" to detailImageUrl,
     "description" to description,
+    "shortDesc" to shortDesc,
+    "fullDesc" to fullDesc,
+    "ingredients" to ingredients,
+    "netWeight" to netWeight,
+    "aromaProfile" to aromaProfile,
+    "conservation" to conservation,
+    "intensity" to intensity,
+    "intensityDesc" to intensityDesc,
+    "fruitNotes" to fruitNotes,
+    "fruitNotesDesc" to fruitNotesDesc,
+    "persistence" to persistence,
+    "persistenceDesc" to persistenceDesc,
     "category" to category,
+    "categoryLabel" to categoryLabel,
     "origin" to origin,
     "badge" to badge.orEmpty(),
+    "badgeColor" to badgeColor,
     "visible" to visible
   )
 }

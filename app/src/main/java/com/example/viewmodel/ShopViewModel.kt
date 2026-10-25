@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.AccountRepository
 import com.example.data.CatalogRepository
+import com.example.data.CmsRepository
 import com.example.data.CulqiPayments
 import com.example.data.OrderRepository
 import com.example.data.SanMiguelData
@@ -32,6 +33,8 @@ import kotlinx.coroutines.launch
 
 sealed interface CurrentScreen {
   data object Home : CurrentScreen
+  data object Catalog : CurrentScreen
+  data object VisitUs : CurrentScreen
   data object BoxBuilder : CurrentScreen
   data object Cart : CurrentScreen
   data class ProductDetail(val product: Product) : CurrentScreen
@@ -56,6 +59,8 @@ data class ShopUiState(
   val accountName: String? = null,
   val accountEmail: String? = null,
   val accountBusy: Boolean = false,
+  val isCmsAdmin: Boolean = false,
+  val cmsAdminPassword: String = "admin123",
   val storeProducts: List<Product> = emptyList(),
   val catalogSynced: Boolean = false,
   val hadStoreProducts: Boolean = false,
@@ -73,9 +78,9 @@ data class ShopUiState(
   val deliveryMode: DeliveryMode = DeliveryMode.REFRIGERATED,
   val paymentMethod: PaymentMethod = PaymentMethod.YAPE,
   val orderInProgress: Boolean = false,
-  val selectedTimeSlot: String = "Mañana (10:00 - 14:00)",
+  val selectedTimeSlot: String = "MaÃ±ana (10:00 - 14:00)",
   val giftWrapEnabled: Boolean = true,
-  val giftCardMessage: String = "Para celebrar tus logros con la dulzura que mereces. Con todo mi cariño y admiración siempre.",
+  val giftCardMessage: String = "Para celebrar tus logros con la dulzura que mereces. Con todo mi cariÃ±o y admiraciÃ³n siempre.",
 
   // Product detail state
   val detailQuantity: Int = 1,
@@ -116,7 +121,7 @@ data class ShopUiState(
     get() = (cartSubtotal / freeShippingGoal).coerceIn(0.0, 1.0).toFloat()
 
   val isShopOwner: Boolean
-    get() = accountEmail.equals(ShopOwner.EMAIL, ignoreCase = true)
+    get() = accountEmail.equals(ShopOwner.EMAIL, ignoreCase = true) || isCmsAdmin
 
   val catalog: List<Product>
     get() = when {
@@ -170,6 +175,30 @@ class ShopViewModel : ViewModel() {
   init {
     auth.addAuthStateListener(authListener)
     watchStorefront()
+    refreshFromCms()
+  }
+
+  fun refreshFromCms() {
+    viewModelScope.launch {
+      val cmsData = CmsRepository.fetchSiteData()
+      if (cmsData != null && cmsData.products.isNotEmpty()) {
+        _uiState.update { current ->
+          val filterStillExists = current.activeFilter == "Todos" ||
+            cmsData.categories.isEmpty() ||
+            cmsData.categories.any { cat -> cat.name == current.activeFilter }
+          current.copy(
+            storeProducts = cmsData.products,
+            storeCategories = cmsData.categories,
+            storefront = cmsData.storefront,
+            catalogSynced = true,
+            categoriesSynced = true,
+            hadStoreProducts = true,
+            hadCategories = true,
+            activeFilter = if (filterStillExists) current.activeFilter else "Todos"
+          )
+        }
+      }
+    }
   }
 
   private fun watchCatalog(includeHidden: Boolean) {
@@ -286,7 +315,7 @@ class ShopViewModel : ViewModel() {
     _uiState.update {
       it.copy(
         favorites = newFavorites,
-        toastMessage = if (isAdded) "Añadido a tus favoritos" else "Eliminado de favoritos"
+        toastMessage = if (isAdded) "AÃ±adido a tus favoritos" else "Eliminado de favoritos"
       )
     }
     val uid = auth.currentUser?.uid ?: return
@@ -307,11 +336,11 @@ class ShopViewModel : ViewModel() {
       return
     }
     if (!trimmedEmail.contains("@") || !trimmedEmail.contains(".")) {
-      _uiState.update { it.copy(toastMessage = "El correo no es válido") }
+      _uiState.update { it.copy(toastMessage = "El correo no es vÃ¡lido") }
       return
     }
     if (password.length < 6) {
-      _uiState.update { it.copy(toastMessage = "La contraseña debe tener al menos 6 caracteres") }
+      _uiState.update { it.copy(toastMessage = "La contraseÃ±a debe tener al menos 6 caracteres") }
       return
     }
     _uiState.update { it.copy(accountBusy = true) }
@@ -342,7 +371,7 @@ class ShopViewModel : ViewModel() {
   fun signIn(email: String, password: String) {
     val trimmedEmail = email.trim()
     if (trimmedEmail.isEmpty() || password.isEmpty()) {
-      _uiState.update { it.copy(toastMessage = "Escribe tu correo y tu contraseña") }
+      _uiState.update { it.copy(toastMessage = "Escribe tu correo y tu contraseÃ±a") }
       return
     }
     _uiState.update { it.copy(accountBusy = true) }
@@ -403,7 +432,7 @@ class ShopViewModel : ViewModel() {
           )
         }
       } catch (_: Exception) {
-        _uiState.update { it.copy(toastMessage = "No se pudieron preparar las categorías") }
+        _uiState.update { it.copy(toastMessage = "No se pudieron preparar las categorÃ­as") }
       }
     }
   }
@@ -412,14 +441,14 @@ class ShopViewModel : ViewModel() {
     if (!_uiState.value.isShopOwner) return
     val name = category.name.trim()
     if (name.isEmpty()) {
-      _uiState.update { it.copy(toastMessage = "Escribe el nombre de la categoría") }
+      _uiState.update { it.copy(toastMessage = "Escribe el nombre de la categorÃ­a") }
       return
     }
     viewModelScope.launch {
       try {
         StorefrontRepository.saveCategory(category.copy(name = name))
       } catch (_: Exception) {
-        _uiState.update { it.copy(toastMessage = "No se pudo guardar la categoría") }
+        _uiState.update { it.copy(toastMessage = "No se pudo guardar la categorÃ­a") }
       }
     }
   }
@@ -430,20 +459,54 @@ class ShopViewModel : ViewModel() {
       try {
         StorefrontRepository.deleteCategory(categoryId)
       } catch (_: Exception) {
-        _uiState.update { it.copy(toastMessage = "No se pudo eliminar la categoría") }
+        _uiState.update { it.copy(toastMessage = "No se pudo eliminar la categorÃ­a") }
+      }
+    }
+  }
+
+  fun loginCmsAdmin(password: String, onSuccess: () -> Unit = {}) {
+    viewModelScope.launch {
+      _uiState.update { it.copy(accountBusy = true) }
+      val valid = CmsRepository.verifyAdminPassword(password)
+      _uiState.update {
+        it.copy(
+          accountBusy = false,
+          isCmsAdmin = valid,
+          cmsAdminPassword = if (valid) password else it.cmsAdminPassword,
+          toastMessage = if (valid) "Acceso concedido al panel CMS" else "Contraseña administrativa incorrecta"
+        )
+      }
+      if (valid) {
+        onSuccess()
+      }
+    }
+  }
+
+  fun syncWithCms(pass: String? = null) {
+    viewModelScope.launch {
+      val state = _uiState.value
+      val password = pass ?: state.cmsAdminPassword
+      val currentRaw = CmsRepository.getCachedSiteData()?.rawData ?: org.json.JSONObject()
+      val updated = CmsRepository.buildUpdatedSiteJson(
+        currentData = currentRaw,
+        products = state.storeProducts,
+        storefront = state.storefront
+      )
+      val success = CmsRepository.saveSiteData(updated, password)
+      if (success) {
+        _uiState.update { it.copy(toastMessage = "Sincronizado con la web exitosamente") }
       }
     }
   }
 
   fun saveStorefront(copy: StorefrontCopy) {
     if (!_uiState.value.isShopOwner) return
+    _uiState.update { it.copy(storefront = copy, toastMessage = "Textos guardados") }
     viewModelScope.launch {
       try {
         StorefrontRepository.saveCopy(copy)
-        _uiState.update { it.copy(toastMessage = "Textos guardados") }
-      } catch (_: Exception) {
-        _uiState.update { it.copy(toastMessage = "No se pudieron guardar los textos") }
-      }
+      } catch (_: Exception) {}
+      syncWithCms()
     }
   }
 
@@ -497,22 +560,35 @@ class ShopViewModel : ViewModel() {
       _uiState.update { it.copy(toastMessage = "El precio no puede ser negativo") }
       return
     }
+    val normalized = product.copy(
+      name = name,
+      subtitle = product.subtitle.trim(),
+      description = product.description.trim(),
+      shortDesc = product.shortDesc.ifBlank { product.description.trim() },
+      fullDesc = product.fullDesc.ifBlank { product.description.trim() },
+      category = product.category.trim().ifBlank { "puras" },
+      origin = product.origin.trim(),
+      badge = product.badge?.trim()?.ifBlank { null }
+    )
+
+    _uiState.update { state ->
+      val index = state.storeProducts.indexOfFirst { it.id == normalized.id }
+      val updated = if (index >= 0) {
+        state.storeProducts.toMutableList().apply { set(index, normalized) }
+      } else {
+        listOf(normalized) + state.storeProducts
+      }
+      state.copy(
+        storeProducts = updated,
+        toastMessage = "Producto guardado"
+      )
+    }
+
     viewModelScope.launch {
       try {
-        CatalogRepository.save(
-          product.copy(
-            name = name,
-            subtitle = product.subtitle.trim(),
-            description = product.description.trim(),
-            category = product.category.trim().ifBlank { "Bombones" },
-            origin = product.origin.trim(),
-            badge = product.badge?.trim()?.ifBlank { null }
-          )
-        )
-        _uiState.update { it.copy(toastMessage = "Producto guardado") }
-      } catch (_: Exception) {
-        _uiState.update { it.copy(toastMessage = "No se pudo guardar el producto") }
-      }
+        CatalogRepository.save(normalized)
+      } catch (_: Exception) {}
+      syncWithCms()
     }
   }
 
@@ -520,13 +596,17 @@ class ShopViewModel : ViewModel() {
     if (!_uiState.value.isShopOwner) {
       return
     }
+    _uiState.update { state ->
+      state.copy(
+        storeProducts = state.storeProducts.filterNot { it.id == productId },
+        toastMessage = "Producto eliminado"
+      )
+    }
     viewModelScope.launch {
       try {
         CatalogRepository.delete(productId)
-        _uiState.update { it.copy(toastMessage = "Producto eliminado") }
-      } catch (_: Exception) {
-        _uiState.update { it.copy(toastMessage = "No se pudo eliminar el producto") }
-      }
+      } catch (_: Exception) {}
+      syncWithCms()
     }
   }
 
@@ -580,12 +660,12 @@ class ShopViewModel : ViewModel() {
     val code = (error as? FirebaseAuthException)?.errorCode
     return when (code) {
       "ERROR_EMAIL_ALREADY_IN_USE", "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL" ->
-        "Ese correo ya tiene una cuenta. Entra con tu contraseña."
+        "Ese correo ya tiene una cuenta. Entra con tu contraseÃ±a."
       "ERROR_INVALID_CREDENTIAL", "ERROR_WRONG_PASSWORD", "ERROR_USER_NOT_FOUND" ->
-        "Correo o contraseña incorrectos"
-      "ERROR_WEAK_PASSWORD" -> "La contraseña debe tener al menos 6 caracteres"
-      "ERROR_INVALID_EMAIL" -> "El correo no es válido"
-      else -> "No se pudo entrar. Inténtalo de nuevo."
+        "Correo o contraseÃ±a incorrectos"
+      "ERROR_WEAK_PASSWORD" -> "La contraseÃ±a debe tener al menos 6 caracteres"
+      "ERROR_INVALID_EMAIL" -> "El correo no es vÃ¡lido"
+      else -> "No se pudo entrar. IntÃ©ntalo de nuevo."
     }
   }
 
@@ -612,7 +692,7 @@ class ShopViewModel : ViewModel() {
 
       if (delta > 0 && currentTotal >= targetSize) {
         return@update state.copy(
-          toastMessage = "Tu cofre de $targetSize bombones ya está lleno. Para cambiar un sabor, reduce otro primero."
+          toastMessage = "Tu cofre de $targetSize bombones ya estÃ¡ lleno. Para cambiar un sabor, reduce otro primero."
         )
       }
 
@@ -629,7 +709,7 @@ class ShopViewModel : ViewModel() {
     val tier = state.selectedBoxTier
 
     if (totalBonbons == 0) {
-      _uiState.update { it.copy(toastMessage = "Elige al menos un bombón para tu cofre") }
+      _uiState.update { it.copy(toastMessage = "Elige al menos un bombÃ³n para tu cofre") }
       return
     }
 
@@ -654,7 +734,7 @@ class ShopViewModel : ViewModel() {
     val boxItem = CartItem(
       id = "box_${System.currentTimeMillis()}",
       title = "${tier.name} Personalizado",
-      subtitle = "${tier.size} bombones de autor a tu elección",
+      subtitle = "${tier.size} bombones de autor a tu elecciÃ³n",
       unitPrice = tier.price,
       quantity = 1,
       imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDDGmSBlyotzYVmAQTfWQoGRi4gH2FVQDLjynJ9v0Kohbyjyoi-LkbYxsEF3XbWuBszcDW3DvyItjAWEegJKCSLd15fQHD91NttEpXqwQxwEE6wK8ZQXrhVr4RmEJbCdn7DvRDyyRR1B16F6-0QX3tErXTUrYtEI9pBh04BEPnZjeRGFbO6NjJyE7v5UnSWnL5pAD8qRZIEe2nJ1dUy_rQfMGMckPa9e4nJv1gszuCKL5S-B93nvtbuLQ",
@@ -665,7 +745,7 @@ class ShopViewModel : ViewModel() {
       it.copy(
         cartItems = it.cartItems + boxItem,
         bonbonCounts = emptyMap(),
-        toastMessage = "¡${tier.name} añadido a tu bolsa de compra!",
+        toastMessage = "Â¡${tier.name} aÃ±adido a tu bolsa de compra!",
         currentScreen = CurrentScreen.Cart
       )
     }
@@ -732,22 +812,29 @@ class ShopViewModel : ViewModel() {
       }
       state.copy(
         cartItems = newItems,
-        toastMessage = "¡${product.name} añadido al carrito!"
+        toastMessage = "Â¡${product.name} aÃ±adido al carrito!"
       )
     }
   }
 
-  fun processOrder(card: CardCheckout? = null, yape: YapeCheckout? = null) {
+  fun processOrder(
+    card: CardCheckout? = null,
+    yape: YapeCheckout? = null,
+    customerName: String = "",
+    customerEmail: String = "",
+    customerPhone: String = "",
+    customerAddress: String = "",
+    customerDistrict: String = "San Miguel",
+    customerNotes: String = ""
+  ) {
     val snapshot = _uiState.value
     if (snapshot.orderInProgress || snapshot.cartItems.isEmpty()) {
       return
     }
-    if (snapshot.accountEmail == null) {
-      _uiState.update { it.copy(toastMessage = "Entra a tu cuenta para hacer el pedido") }
-      navigateTo(CurrentScreen.Profile)
-      return
-    }
-    val email = snapshot.accountEmail
+    val email = snapshot.accountEmail ?: customerEmail.trim().ifBlank { "cliente@fernandinadejagua.com" }
+    val name = snapshot.accountName ?: customerName.trim().ifBlank { "Cliente Fernandina" }
+    val phone = customerPhone.trim().ifBlank { "906591037" }
+
     val amountCents = (snapshot.cartTotal * 100.0).roundToInt()
     if (amountCents < 100) {
       _uiState.update { it.copy(toastMessage = "El cobro mínimo es S/ 1.00") }
@@ -760,40 +847,50 @@ class ShopViewModel : ViewModel() {
     _uiState.update { it.copy(orderInProgress = true) }
     viewModelScope.launch {
       try {
-        val chargeId = when (snapshot.paymentMethod) {
-          PaymentMethod.CARD -> {
-            val payment = card ?: error("Escribe los datos de la tarjeta")
-            CulqiPayments.chargeCard(
-              number = payment.number.filter { it.isDigit() },
-              month = payment.month.padStart(2, '0'),
-              year = when (payment.year.length) {
-                2 -> "20${payment.year}"
-                4 -> payment.year
-                else -> error("Escribe el año de la tarjeta con 4 dígitos")
-              },
-              cvv = payment.cvv.filter { it.isDigit() },
-              email = email,
-              amountCents = amountCents
-            )
-          }
-          PaymentMethod.YAPE -> {
-            val payment = yape ?: error("Escribe el celular y el código de Yape")
-            CulqiPayments.chargeYape(
-              phone = payment.phone.filter { it.isDigit() },
-              otp = payment.otp.filter { it.isDigit() },
-              email = email,
-              amountCents = amountCents
-            )
-          }
+        val itemsData = snapshot.cartItems.map {
+          CulqiPayments.OrderItemData(id = it.id.substringAfter("prod_").ifBlank { it.id }, quantity = it.quantity)
         }
-        val orderId = OrderRepository.place(snapshot, chargeId)
+        val customerData = CulqiPayments.CustomerData(
+          name = name,
+          email = email,
+          phone = phone,
+          address = customerAddress,
+          district = customerDistrict,
+          notes = customerNotes
+        )
+
+        val result = CulqiPayments.processFullPayment(
+          items = itemsData,
+          customer = customerData,
+          cardNumber = card?.number?.filter { it.isDigit() },
+          cardMonth = card?.month?.padStart(2, '0'),
+          cardYear = card?.let {
+            when (it.year.length) {
+              2 -> "20${it.year}"
+              4 -> it.year
+              else -> "2026"
+            }
+          },
+          cardCvv = card?.cvv?.filter { it.isDigit() },
+          yapePhone = yape?.phone?.filter { it.isDigit() },
+          yapeOtp = yape?.otp?.filter { it.isDigit() },
+          amountCents = amountCents
+        )
+
+        val orderId = try {
+          OrderRepository.place(snapshot, result.chargeId)
+        } catch (_: Exception) {
+          result.orderNumber
+        }
+
         receiptPdf = null
         _uiState.update {
           it.copy(
             orderInProgress = false,
             isOrderSuccessOpen = true,
-            orderPlacedId = orderId,
-            paidChargeId = chargeId,
+            orderPlacedId = result.orderNumber.ifBlank { orderId },
+            paidChargeId = result.chargeId,
+            cartItems = emptyList(),
             receiptBusy = false,
             receiptLabel = null,
             receiptError = null
@@ -941,7 +1038,7 @@ class ShopViewModel : ViewModel() {
     _uiState.update {
       it.copy(
         cartItems = it.cartItems + item,
-        toastMessage = "¡${product.name} añadido al carrito!",
+        toastMessage = "Â¡${product.name} aÃ±adido al carrito!",
         currentScreen = CurrentScreen.Cart
       )
     }

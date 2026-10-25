@@ -2,6 +2,7 @@ package com.example
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -61,10 +62,12 @@ import com.example.ui.components.SearchDialog
 import com.example.ui.components.SustainabilityBottomSheet
 import com.example.ui.screens.BoxBuilderScreen
 import com.example.ui.screens.CartScreen
+import com.example.ui.screens.CatalogScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.ProductDetailScreen
 import com.example.ui.screens.ProfileScreen
 import com.example.ui.screens.ShopAdminScreen
+import com.example.ui.screens.VisitUsScreen
 import com.example.ui.splash.EbyzomSplash
 import com.example.ui.theme.ChocolatePrimaryContainer
 import com.example.ui.theme.CreamBackground
@@ -149,7 +152,14 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
     topBar = {
       AppTopBar(
         isDetailScreen = isDetail,
-        title = if (isDetail) "Detalle De Bombón" else "Fernandina de Jagua Chocolates",
+        title = when {
+          isDetail -> (uiState.currentScreen as? CurrentScreen.ProductDetail)?.product?.name ?: "Detalle del Chocolate"
+          uiState.currentScreen is CurrentScreen.Catalog -> "Catálogo de Chocolates"
+          uiState.currentScreen is CurrentScreen.VisitUs -> "Visítanos · San Miguel"
+          uiState.currentScreen is CurrentScreen.Cart -> "Tu Carrito"
+          uiState.currentScreen is CurrentScreen.Profile -> "Mi Cuenta"
+          else -> "Fernandina de Jagua"
+        },
         onBackClick = {
           if (!viewModel.navigateBack()) {
             viewModel.navigateTo(CurrentScreen.Home)
@@ -161,7 +171,7 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
             action = Intent.ACTION_SEND
             putExtra(
               Intent.EXTRA_TEXT,
-              "Descubre los bombones de autor de Fernandina de Jagua Chocolates. Recojo en ${uiState.storefront.storeAddress}."
+              "Descubre la chocolatería artesanal Fernandina de Jagua. Jr. Comandante Juan Guillermo Moore 296, San Miguel, Lima."
             )
             type = "text/plain"
           }
@@ -193,7 +203,35 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
             onToggleFavorite = { viewModel.toggleFavorite(it) },
             onFilterSelect = { viewModel.setFilter(it) },
             onOpenSustainability = { viewModel.toggleSustainability(true) },
-            onNavigateToBuilder = { viewModel.navigateTo(CurrentScreen.BoxBuilder) }
+            onNavigateToBuilder = { viewModel.navigateTo(CurrentScreen.Catalog) }
+          )
+        }
+
+        is CurrentScreen.Catalog -> {
+          CatalogScreen(
+            uiState = uiState,
+            onProductClick = { viewModel.openProductDetail(it) },
+            onAddToCart = { viewModel.addProductToCart(it) },
+            onToggleFavorite = { viewModel.toggleFavorite(it) },
+            onFilterSelect = { viewModel.setFilter(it) },
+            onWhatsAppClick = { msg ->
+              try {
+                val waIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/51906591037?text=" + Uri.encode(msg)))
+                context.startActivity(waIntent)
+              } catch (_: Exception) {}
+            }
+          )
+        }
+
+        is CurrentScreen.VisitUs -> {
+          VisitUsScreen(
+            uiState = uiState,
+            onWhatsAppClick = { msg ->
+              try {
+                val waIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/51906591037?text=" + Uri.encode(msg)))
+                context.startActivity(waIntent)
+              } catch (_: Exception) {}
+            }
           )
         }
 
@@ -217,8 +255,10 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
             onToggleGiftWrap = { viewModel.setGiftWrap(it) },
             onUpdateGiftMessage = { viewModel.setGiftCardMessage(it) },
             onSelectPayment = { viewModel.setPaymentMethod(it) },
-            onCheckout = { card, yape -> viewModel.processOrder(card, yape) },
-            onNavigateToBuilder = { viewModel.navigateTo(CurrentScreen.Home) }
+            onCheckout = { card, yape, name, email, phone, address, district, notes ->
+              viewModel.processOrder(card, yape, name, email, phone, address, district, notes)
+            },
+            onNavigateToBuilder = { viewModel.navigateTo(CurrentScreen.Catalog) }
           )
         }
 
@@ -249,7 +289,8 @@ fun MainAppContent(viewModel: ShopViewModel = viewModel()) {
             onAuthMessage = { viewModel.showToast(it) },
             onSignOut = { viewModel.signOut() },
             onOpenShop = { viewModel.navigateTo(CurrentScreen.ShopAdmin) },
-            onDeleteAccount = { viewModel.deleteAccount {} }
+            onDeleteAccount = { viewModel.deleteAccount {} },
+            onCmsAdminLogin = { viewModel.loginCmsAdmin(it) { viewModel.navigateTo(CurrentScreen.ShopAdmin) } }
           )
         }
 

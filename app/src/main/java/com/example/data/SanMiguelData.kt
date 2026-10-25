@@ -7,86 +7,269 @@ import com.example.model.Product
 import com.example.model.SensoryProfile
 
 object SanMiguelData {
+  const val BRAND_NAME = "Fernandina de Jagua"
+  const val BRAND_SUBNAME = "Chocolates"
+  const val BRAND_TAGLINE = "Chocolatería artesanal en San Miguel"
+  const val COMPANY_NAME = "EBYZOM E.I.R.L."
+  const val ADDRESS = "Jr. Comandante Juan Guillermo Moore 296"
+  const val DISTRICT = "San Miguel, Lima — Perú"
+  const val ZONE = "San Miguel • Lima Oeste"
   const val WHATSAPP_DISPLAY = "906 591 037"
   const val WHATSAPP_E164 = "51906591037"
+  const val GOOGLE_MAPS_URL = "https://maps.google.com/?q=Jr.+Comandante+Juan+Guillermo+Moore+296,+San+Miguel,+Lima,+Peru"
 
   const val LOGO_URL =
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuCLscibk581MuDyRbZh1Qk3xanqEP1jNUzssfC6Aub7GeRWIBnAZSbqDwtQnTcujm1-mVJm-uUeIHiA9lG6yVrgLYG3kz62IvGYXfgahBUYZvrDdDdaEZIoITxZEsv8a8El07YJg91o_yTDvz84Pd6jmwZPcOGjaN9crTH8Bpw7NqISXZiJ_1fwFAi7Q81GBJf2ei41hNBARQojhMchhkZVmONj_nufAw1nd0m8QfiBpv603xkIiGpaqg"
-
-  const val PROFILE_URL =
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuDs9MWILCj1ZEoso1pG85Yx1Qpu6zOq4pYH4jSazJ8M3OYEl7J8yr8m0vUsqG_BOfoKaOPVC7tTJZfaHHgZklD2S01KSzNMRHiEc1tKWmtBh0EEbwRyYfAiAnbanYgQu4B3rdZix5UkenY_sda_lDm4yKQI4kYHBTnlfZtDxWA2L_LOhp957zxKlU8yg6JcdKNyM6Y-OMXn8BHYIBZvv-hIby-d4VAuZ-wr7n6tcXfo9mjd1Yh-mK4S1w"
+    "https://lh3.googleusercontent.com/aida/AEtjO1XgS194rmpMVmsu7ZxJSU6rRsFuHF4O8B_zRNENRfuSs_oagXruylRTI0SDMiVqCf8axjQMwCjdGsE9g77u-YnjoRnv4bCv98XOkAkagt_y4NuC6phODGZ_zYkV9J1qBBRk5xFp2ZjxO9AVAHy49m7GnjltmucYDMHLYheSBjgfhrfHyRuHnwfy4e2d8Ocr948vMoRsGNeArBktKJoQ3DLaC1--lS3KRhsaq-EitSE2uDno7SfGM7AvySy7ERESR-ic4PpvrP6PBQ"
 
   const val HERO_IMAGE_URL =
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuBMUjhUVJL-8ZzfFOlnyCPgzCMM1MWT99cItx_l-pAtl6A0pYg5HMcO_iScg1BGJ8qbWL60b4b6tRfx_AQRUx3-o5YE_L1Xjo1_7Wws6ktSRB75StinrtRoM26bh04srTZ3AGbyXZ5sR_FKB8mpA2qA8Zbv_a4Byboq9ogdzlOxAEwnpOGEBWKGwXLikWeF3yxrUzJFbMEuD-tH-R2loe5SU9nuulA3zuYyeWIYtvcdhVOwdz9vcE3XOw"
+    "https://lh3.googleusercontent.com/aida-public/AB6AXuAZO0SjunW9PAM3zWRiNq7OSnY_dJm7_U4n5GsUWKJcnHBv9qz8B-hvYPkwJRtEvJJPXCho89DAJGxEM4_WEK4DHdipXh_ldRQalHJqZhEqQtD4cMu4-NxsTG5kCV8pGnFB-jNnGMpir_DvAI8B5f_SAbwnmZ1YKEIlmYkCm9ZZVP1hhUGN9iENBDjcZyaGuUtkG3dRTJy7cwYP6a2Dwi8Jp2XNXKzi-P-BOrkJHFGeidhZe3DHEWRn"
+
+  const val AMBIENT_IMAGE_URL =
+    "https://lh3.googleusercontent.com/aida-public/AB6AXuB4dgKAy6-Uoz3AoGJtobWTTMTCL8LPpZprPRGBNgI4xDwn0jJ0oT0y89CDc0hKvnAVv3kFkUZ6dgYkpltXl2p34FSFjmzDC0SCX4d50t56N-fkXuZaz0aSw6GmDy0x1pOAVoQy5UOvv64MSXY9fOTdK5MrhUHtp1ghPSZWmLRJ1AEPbNNTH0CYRQnPajoV26BrqcJ9FpZHwSoFUOmLE_FWpS6zwJhTS2uEIUDrbziYtnhT4bt2zjh0"
 
   val categories = listOf(
-    Pair("Bombones de Autor", "https://lh3.googleusercontent.com/aida-public/AB6AXuBPDxcllpNJYhPnMpxL0GKeJRl-peZ9kM3qoIAHx5TEccoottzv4fsLHbjKhHFqZpLwM9zA-4MR0yCSF0_3KPFTqgBLRLuX0PWfPBj-I78zm1oMDui8OE1IzuHpVGNS0b9CvvJ-vkcyYymjgmB_lEkXDSQYECzGngHnsQPGRnxwoQ4q5_E6WnUY7lL1qt3AN9BnLByOOnvLHQw32qDBliuqb3-chmTS7tlD-wHVtBWuqmc74kQjHV6jfA"),
-    Pair("Trufas & Ganache", "https://lh3.googleusercontent.com/aida-public/AB6AXuBqa3MdUZwbAzz4WMUV8AP2QP4TSjVTERoSfFwF1wopDZytMEK7nq00eNUvvwAj89GIUJ857MUNC4aPIEyYpBwLXdABlcsQyAu525hLx59SzBBBtl3rwfToYwOiii6QwtbTVzWT0B0wLo-XQqncf3knQLCIEadanGvn2OkcC_bz25HwKDS8l2SX-XEBzYlY8rpfa0fLduk6xZhp9bJKkIehlO9P05hSICQ6clgwfCcez4uRlBAk5prkuw"),
-    Pair("Macarons Artesanos", "https://lh3.googleusercontent.com/aida-public/AB6AXuCywsAF8d-a_FPW5B_Z5Q0wJb3hev5zjpo-xK8iIZYB-T-_ojdHCnaeA9lm4WVy8a-IFprimHnH9E91dz0NodGnqUrFhmKte7nXqbhcV4Nzh0LP_p8opsh9s8aOs48yRiPNhmrFQyvd-mWrNCLBt4Je-GhsuhH4GME9bO5OKWyI-fxwPYf2klWO3OmlnKNyQBSuD1__E7jnuiRT9i5eE7Psxjv-gyqq6tL72um5-GdMfKCthJaqbqhiBQ"),
-    Pair("Cajas de Regalo", "https://lh3.googleusercontent.com/aida-public/AB6AXuBCaiyXM6cYr0o824SNHCiq7-Dt1J0ItSwT4IFWxHWNsqbyfxuoclmJgZ498oaY_1zhCj3N6LJE8bGZHHcU7MH5UxkCIDaJxr3kvtCX2zPSS0qX5saZs8OxJF-qJCuN8EdFsm3sTIT2bxgpHUmbATnlQajwq1yloSGF78eL1_-EE31hCf6jNmwZ5jDIP9gx0RRNAClrCmwP-FLRkXUG2xBHzNKV47ZKU2kXQAwYgZ39E1219HPBMAwO_w"),
-    Pair("Bean-to-Bar", "https://lh3.googleusercontent.com/aida-public/AB6AXuDGtthTZSaDE4F9aBVaBlbdnwLYCHPU2ljsXEvItu7awOcXJICl0o2qFuQFgdbYBXhqn0kcdPFM0l0uS97ECKavG-tqxU2hd6serskwZcqWVGwQxrnK1nJIihK76-YtLlGqxMkm-BiXVjHh7yrnziDI14HN-hO7dssfa38mXqrAtVQ1-Sf0cspIulsSTw1DgT2uSkRjCD_NtppisN6xsmW56K8VIQP4lDe1A-RDYuKj6Nhdb76Zfv9Paw")
+    Pair("Barras Puras", "https://lh3.googleusercontent.com/aida-public/AB6AXuCzfn5-EatkC0GTOTODeigjbf8UwZevZ8kHwK4PRlHBsvChOrH1ew8-_tXhWtimZ9lGOhqwSHq5ajFwkKnu8mO3Fen_zdzz2qHgUOwzZ35h30pkl0gn82gpgLzXVMjj5WtT6PAGCk0HSigpuSGurUz8WUcQUsrovAsgaDXYVzAde1sfYh7lKoyZW00tzyBvfEXotle6m9M9yYd_v_kzM5OTzi3mYD_qaTFebAZPyCXlohpndZPPW0YB"),
+    Pair("Bombones & Trufas", "https://lh3.googleusercontent.com/aida-public/AB6AXuCqqXN-7FJmryt3O4Cvxhtw_ytdztIDE0UAdFiI8mNvApeSFx_d52Qh2noNTUaq71MuEHo59YhDMrrschRfYMj0qTNiQam_diaTwzrohNPOEisT84IBsbQj-b3v95XfdS1r0qDSdDYhp49D900zaZzk9x2JnkSrFIsq8LLyg3HWr9aEz0Sf3gzWn0Sqet2qw1dxipUm_PNhFZOCqzQB4uur6BLstDNBV5IcRpUUxaNRqBfObkjeN0Li"),
+    Pair("Cacao & Frutas", "https://lh3.googleusercontent.com/aida-public/AB6AXuAF6WthTtmWA9PvTmj0LDSmMaHbG1_D8ESXnKM7yrQsOQfA8QP40g8ZcjQm1k7c0iZ1iRYgBWqPAj8fRgV8CgXOsaqNeNWUESGVBx2jQweb_WTRpBBnX2lVYAYuuQ_xwc3-fbuFJVkxgjIjiAAlK_TkYsZ1nZxR1P4-A2r6lIlNWYjDardqnjk4IxtOJL3POImQnjGEneTRsiV2_jmYGPtCiBKL8UH86xfPH5Kei7yiu6T_A3fNAlP9"),
+    Pair("Colecciones Especiales", "https://lh3.googleusercontent.com/aida-public/AB6AXuBtjvqiC1RcMrQdkyP7Yf9w62rkIHOM4Jgn0Il3klI55dtJU6zJ8x3iLaJ5GzhJ7RMAunTfKel9wrw2I4bku8rcb9YlcGtvBB1KcIf4f18VYln8OQlfNGzeEoIDnQEm2ncUwpLLijXArxLgDJQUDrnp3VAUPC7FT011GGD39yqrmID70w84oMaECDPDTmV28YION8UQGSHpb5cSk0q27Z6eOewMJKmjGI2SYhpdmg4PZKdglQ3YMGbW")
   )
 
   val products = listOf(
     Product(
-      id = "cofre_real",
-      name = "Cofre Real Fernandina de Jagua · 18 Bombones",
-      subtitle = "Surtido de grandes cosechas",
-      price = 28.50,
-      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDDGmSBlyotzYVmAQTfWQoGRi4gH2FVQDLjynJ9v0Kohbyjyoi-LkbYxsEF3XbWuBszcDW3DvyItjAWEegJKCSLd15fQHD91NttEpXqwQxwEE6wK8ZQXrhVr4RmEJbCdn7DvRDyyRR1B16F6-0QX3tErXTUrYtEI9pBh04BEPnZjeRGFbO6NjJyE7v5UnSWnL5pAD8qRZIEe2nJ1dUy_rQfMGMckPa9e4nJv1gszuCKL5S-B93nvtbuLQ",
-      rating = 5.0,
-      reviewsCount = 142,
-      badge = "Favorito",
-      category = "Para Regalar",
-      origin = "Selección de terruños del Perú",
-      description = "Exquisito cofre de madera lacada forrado en terciopelo azul marino, con 18 joyas de cacao pintadas a mano con polvo de oro comestible y ganaches de alta expresión.",
-      sensoryProfile = SensoryProfile(cocoaIntensity = 4, sweetnessLevel = 2)
-    ),
-    Product(
-      id = "bombon_oro",
-      name = "Bombón Oro Praliné & Sal Marina",
-      subtitle = "Castaña de Madre de Dios",
-      price = 2.20,
-      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDYVFiesXLx3NGJpP4XldhO89oRfFrIVCfrSwf5NqmMiqXdE4Qz2vP2y3pKy62AQDNeJ_jyYVRTNf0-usJ427IZAyvYOi8adIf7jEu1IbCfVhandETrVhjOn-CWOhLmggCPLFo2oNvifUP29i_1tn1iRwARCm_muyJpBK60c8L9N_TqCNyWj8NL8jhJ6AeATiijRUF8FC2OO38_8Q1Nj-6tM_32VUzVMUFqP0T3rEmUbbTgyGViZOHIxw",
-      rating = 4.9,
-      reviewsCount = 88,
-      badge = "Praliné",
-      category = "Más vendidos",
-      origin = "70% Cacao de Piura · Castaña de Madre de Dios",
-      description = "Bombón esculpido a mano con lámina de oro de 24k, corazón fundente de praliné tostado y microcristales de sal de Maras.",
+      id = "barra-70-cacao-origen",
+      name = "Barra Gran Cacao 70% Origen",
+      subtitle = "Origen Seleccionado",
+      price = 18.00,
+      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCzfn5-EatkC0GTOTODeigjbf8UwZevZ8kHwK4PRlHBsvChOrH1ew8-_tXhWtimZ9lGOhqwSHq5ajFwkKnu8mO3Fen_zdzz2qHgUOwzZ35h30pkl0gn82gpgLzXVMjj5WtT6PAGCk0HSigpuSGurUz8WUcQUsrovAsgaDXYVzAde1sfYh7lKoyZW00tzyBvfEXotle6m9M9yYd_v_kzM5OTzi3mYD_qaTFebAZPyCXlohpndZPPW0YB",
+      detailImageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuBGhmDQOOIZMnPOKG7142iBfX4CcFFXbwXUREKNrkDCSqB99cRmVPv8TTsb1H_saR3LlrOfxmzXTfzQYqgr9Oj4MNDH3mzqakb1o7BHe8T45Ri61AKHvZh3iqPoOlKWyVnQPMZwJjZ-6VkT9yuZZropZDg8CK7RDHrY_LNdWHaSWxld8NdRgGvh5VwxNY-S6iXYWjufnacYOXXShMur0oOJFuSizC_5t0ZKJAXnkqEvrsWs5d0Yp9Dk",
+      badge = "Cacao 70%",
+      badgeColor = "primary",
+      category = "puras",
+      categoryLabel = "Barras Puras",
+      origin = "Cacao Peruano Seleccionado · San Miguel, Lima",
+      shortDesc = "Notas profundas de frutos rojos secos, ligero toque floral y final a roble tostado.",
+      fullDesc = "Elaborada con granos seleccionados de cacao peruano finamente tostados y refinados. Revela un perfil aromático equilibrado con notas profundas a frutos secos y un final prolongado y suave en boca.",
+      ingredients = "Pasta de cacao, manteca de cacao y panela orgánica.",
+      netWeight = "80 gramos",
+      aromaProfile = "Frutos secos, madera noble y miel tibia",
+      conservation = "16°C – 19°C · Lugar fresco y seco",
+      intensity = 4.5,
+      intensityDesc = "Carácter de tostado balanceado sin amargor agresivo.",
+      fruitNotes = 3.8,
+      fruitNotesDesc = "Matices a pasas rubias y frutos secos caramelizados.",
+      persistence = 4.8,
+      persistenceDesc = "Despliegue envolvente y retrogusto untuoso de cacao noble.",
       sensoryProfile = SensoryProfile(
-        cocoaIntensity = 4,
+        cocoaIntensity = 5,
         sweetnessLevel = 2,
-        aromaNotes = listOf("Tostado Intenso", "Vainilla de selva", "Toque Floral", "Sal de Maras")
+        aromaNotes = listOf("Frutos secos", "Madera noble", "Miel tibia", "Roble tostado")
       )
     ),
     Product(
-      id = "trufa_noir",
-      name = "Trufa Negra Pisco & Naranja",
-      subtitle = "Ganache fundente añejo",
-      price = 2.40,
-      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuAwAyRw0RsGOBDVAzz_gSSfCZo4ZaPc2837M1bwFrwcW47mcX_P7ilkTwoj9pMhpZNF49Okl_O4UefOP-JDVwX-Renfhejz1WYVtIPK_LB9wOrItzz6QBRctXA77ZTx6WyMbYKYZPQR1WG74ieUzZtCSoJAw5dkXMDmeMP-LlGkaa7kILLaosRbXakX1fT1U0udDLhD8ARJaKl_BxdUbqpIgE-5YV6IayFyvp5X7ggRlxiC1ECjb6GJhw",
-      rating = 4.8,
-      reviewsCount = 64,
-      badge = "Cacao 70%",
-      category = "Sin gluten",
-      origin = "Cacao de San Martín 70% y naranja peruana",
-      description = "Profunda trufa de chocolate negro bañada en cacao puro, aromatizada con pisco y virutas confitadas de piel de naranja.",
-      sensoryProfile = SensoryProfile(cocoaIntensity = 5, sweetnessLevel = 2)
+      id = "bombones-artesanales-surtidos",
+      name = "Bombones Artesanales Surtidos",
+      subtitle = "Rellenos Nobles",
+      price = 32.00,
+      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCqqXN-7FJmryt3O4Cvxhtw_ytdztIDE0UAdFiI8mNvApeSFx_d52Qh2noNTUaq71MuEHo59YhDMrrschRfYMj0qTNiQam_diaTwzrohNPOEisT84IBsbQj-b3v95XfdS1r0qDSdDYhp49D900zaZzk9x2JnkSrFIsq8LLyg3HWr9aEz0Sf3gzWn0Sqet2qw1dxipUm_PNhFZOCqzQB4uur6BLstDNBV5IcRpUUxaNRqBfObkjeN0Li",
+      detailImageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDL-EjW4LAP0xQidxF0GjyMCbSpvpnqlafbUG1HFZxAQpy_GhH1wEMXRSJOfssnOeDc_ePpGNxDfurBstnJYtpz1HSrKhloXyRXsFa4j8LQf3TE13WpJHJnly7uAs7rYN05E84h7c4xa10XN7D2RsCLl9CmI9U8rIzrzFExaaiGCaX5metbaze8Zpz5htimEk1FECgSZf3RqcZtjtdc8XGaaDbTd31tnGscikJBwSrGrJmmZDcUAlc4",
+      badge = "Selección",
+      badgeColor = "secondary",
+      category = "bombones",
+      categoryLabel = "Bombones & Trufas",
+      origin = "Valle de Chanchamayo y Quillabamba",
+      shortDesc = "Ganache de maracuyá, praliné de avellanas crocantes y caramelo con infusión de vainilla.",
+      fullDesc = "Caja de piezas facetadas a mano con pinceladas doradas. Cada bombón conjuga una fina capa exterior de cacao al 65% con centros aromáticos que van desde pulpa de maracuyá reducida hasta praliné tostado en piedra.",
+      ingredients = "Cobertura de cacao 65%, pulpa de maracuyá, crema de leche fresca, avellanas tostadas y vainilla de convento.",
+      netWeight = "12 unidades (140g aprox.)",
+      aromaProfile = "Acidez tropical, praliné tostado y caramelo dorado",
+      conservation = "15°C – 18°C · Consumo preferente dentro de los 21 días",
+      intensity = 3.9,
+      intensityDesc = "Equilibrio sedoso entre la potencia del cacao y el dulzor de fruta natural.",
+      fruitNotes = 4.7,
+      fruitNotesDesc = "Explosión cítrica y aromática de maracuyá de huerto fresco.",
+      persistence = 4.4,
+      persistenceDesc = "Sensación aterciopelada y cremosidad duradera en paladar.",
+      sensoryProfile = SensoryProfile(
+        cocoaIntensity = 4,
+        sweetnessLevel = 3,
+        aromaNotes = listOf("Maracuyá", "Praliné tostado", "Avellanas", "Vainilla")
+      )
     ),
     Product(
-      id = "degustacion_origenes",
-      name = "Degustación Orígenes · 6 Variedades",
-      subtitle = "Piura, Cusco y San Martín",
-      price = 16.90,
-      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuC3K4w9dn9m1O0307rMpNerllEMMgGrofWjiean9ikycHdbqtUshS7L4jJMnW9HUDXD2yODylaTVHz-nSmZitmF9QEnPIiTPgnJW3wmM5AAhV4KiMed7-Qi52Ye8auomzHlGHzbbLrUO3pGcFOcSHdxGuXwTxlGufW5c9suSlpThDibXXOdqjOuHVZfon0bEpZqKX4ruMH3oSSImQNUwBiOCgyUvh4P-K8c8IWwSo7mFWIc7YyaaaJphw",
-      rating = 4.9,
-      reviewsCount = 112,
-      badge = "Tasting Box",
-      category = "Veganos",
-      origin = "Cacao fino de aroma del Perú",
-      description = "Set de cata guiado con mini tabletas de origen único numeradas, desde las notas frutales de Piura hasta el tueste de San Martín.",
-      sensoryProfile = SensoryProfile(cocoaIntensity = 4, sweetnessLevel = 1)
+      id = "chocolate-oscuro-frutos-secos",
+      name = "Chocolate Oscuro con Frutos Secos",
+      subtitle = "Textura & Grano",
+      price = 22.00,
+      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuAF6WthTtmWA9PvTmj0LDSmMaHbG1_D8ESXnKM7yrQsOQfA8QP40g8ZcjQm1k7c0iZ1iRYgBWqPAj8fRgV8CgXOsaqNeNWUESGVBx2jQweb_WTRpBBnX2lVYAYuuQ_xwc3-fbuFJVkxgjIjiAAlK_TkYsZ1nZxR1P4-A2r6lIlNWYjDardqnjk4IxtOJL3POImQnjGEneTRsiV2_jmYGPtCiBKL8UH86xfPH5Kei7yiu6T_A3fNAlP9",
+      badge = "Cacao 60%",
+      badgeColor = "primary",
+      category = "frutas",
+      categoryLabel = "Cacao & Frutas",
+      origin = "Cacao San Martín y frutos secos andinos",
+      shortDesc = "Almendras tostadas enteras, pistachos seleccionados y un balance crujiente excepcional.",
+      fullDesc = "Elaborado con frutos secos levemente dorados al horno para despertar sus aceites esenciales naturales, integrados a una base de chocolate negro untuoso de acidez equilibrada.",
+      ingredients = "Pasta de cacao 60%, azúcar de caña integral, almendras tostadas, pistachos pelados y arándanos deshidratados.",
+      netWeight = "90 gramos",
+      aromaProfile = "Frutos tostados, aceites nobles y madera ligera",
+      conservation = "16°C – 20°C · Lugar fresco y libre de humedad",
+      intensity = 4.0,
+      intensityDesc = "Cuerpo untuoso con contraste crujiente de alta satisfacción.",
+      fruitNotes = 3.5,
+      fruitNotesDesc = "Destellos de arándanos silvestres con suave acidez.",
+      persistence = 4.2,
+      persistenceDesc = "Retrogusto tostado de frutos secos y cacao templado.",
+      sensoryProfile = SensoryProfile(
+        cocoaIntensity = 4,
+        sweetnessLevel = 2,
+        aromaNotes = listOf("Almendras tostadas", "Pistacho", "Arándanos", "Madera noble")
+      )
+    ),
+    Product(
+      id = "barra-85-cacao-intenso",
+      name = "Barra 85% Cacao Intenso",
+      subtitle = "Perfil Puro",
+      price = 19.00,
+      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuBwaMQUUOxU2iPvCRPwvZNXvGoZo-dHJnAQ5fw8Si3nKMFBq0CsqgSNJwuGG4rWYjIKWnorsQTpiLnovRPLYtDKx-BdxiJyRL7l5ubsLAacQhQsh0wH5ONTnOYx5dgiJtRvZpkIDgRkqp_SJTiin7vvfJW3PpsVoDuDvP8DSKvHKN1zk18y43YLMMU-zya3MQyU146BDR7gNCYQnu_5sfcp5fMU0BD9jSegwvo12l8HCf51DVvyCjLs",
+      detailImageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuC1YJP6spZPVkdxvVfCCJxkCeL7O8ExpC3W9aoIvDhd4grcJba_GyljHhoXuww6meKjxzHaNZKwcjGjUeA7Yq0-jujEg126Ru2KXITsal8mJFcQCjJTinVl9phZGn4HglxwFe4_8v6SHhGTWq9jg_p87E5mJi38OD-NbV2SoofCZk2JQopnk9HmSHB9HFPFf2eY-66FdEDmIlrvr4XNWeMlezaKrUit4PaXXLhRxBABjEjCIogSeen8",
+      badge = "Cacao 85%",
+      badgeColor = "primary",
+      category = "puras",
+      categoryLabel = "Barras Puras",
+      origin = "Cacao Nativo Blanco de Piura",
+      shortDesc = "Potente carácter tánico con notas terrosas, tabaco rubio y retrogusto persistente.",
+      fullDesc = "Una experiencia sin concesiones para paladares experimentados. Mínima adición de azúcar de caña orgánica para resaltar la pureza vegetal y la potencia mineral del grano virgen.",
+      ingredients = "Granos de cacao 85%, manteca pura de cacao y 15% de panela orgánica de Piura.",
+      netWeight = "80 gramos",
+      aromaProfile = "Humo dulce, tabaco rubio, cuero y tierra húmeda",
+      conservation = "15°C – 19°C · Lugar fresco y seco",
+      intensity = 4.9,
+      intensityDesc = "Fuerza astringente controlada y notas tónicas muy marcadas.",
+      fruitNotes = 2.9,
+      fruitNotesDesc = "Notas secas de higo y mora silvestre.",
+      persistence = 5.0,
+      persistenceDesc = "Máxima duración en boca; presencia vegetal inconfundible.",
+      sensoryProfile = SensoryProfile(
+        cocoaIntensity = 5,
+        sweetnessLevel = 1,
+        aromaNotes = listOf("Tabaco rubio", "Humo dulce", "Higo seco", "Tierra húmeda")
+      )
+    ),
+    Product(
+      id = "trufas-cafe-canela",
+      name = "Trufas de Café y Canela",
+      subtitle = "Infusión Especial",
+      price = 26.00,
+      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuApp9i2J-C8ZnA7RIP2KiR9Lfc_kZiddrrfRrfboMbThbur9P9ngZUwupBfXKWmw_SKRaCQ2gzq84gFMsqICwPbTW8Qx4EwOQeNC4a50OqzPyGT0tS7XAT8T-ldrpwId2SiI3yf6uKDoLwW7z0evIa1I9xPjEWiVFXek5L3rFczNoSZhaLGhVyPw1ZRAQlAfv7TFpjVb1wE8W8qFztjEjAJxrSfGqSeseK4mfFHj7DEYbqd1zNejII8",
+      badge = "Aromático",
+      badgeColor = "secondary",
+      category = "bombones",
+      categoryLabel = "Bombones & Trufas",
+      origin = "Cacao Junín y Café Villa Rica",
+      shortDesc = "Corazón cremoso emulsionado con café de altura y un toque sutil de canela ceilán.",
+      fullDesc = "Textura untuosa que se funde en boca de manera inmediata. Emulsión lenta de crema fresca, reducción de café arábica y velo exterior de cacao puro con canela espolvoreada.",
+      ingredients = "Cacao al 70%, extracto concentrado de café de Villa Rica, crema de leche de pastura, canela de Ceilán molida.",
+      netWeight = "8 unidades (110g)",
+      aromaProfile = "Café tostado, canela en rama y crema dulce",
+      conservation = "14°C – 18°C · Mantener refrigerado si la temperatura ambiente supera 22°C",
+      intensity = 4.2,
+      intensityDesc = "Fusión envolvente de café tostado y chocolate denso.",
+      fruitNotes = 3.1,
+      fruitNotesDesc = "Matices a ciruela pasa y notas especiadas cálidas.",
+      persistence = 4.6,
+      persistenceDesc = "El café y la canela perduran de forma noble y tibia.",
+      sensoryProfile = SensoryProfile(
+        cocoaIntensity = 4,
+        sweetnessLevel = 3,
+        aromaNotes = listOf("Café tostado", "Canela Ceilán", "Crema fresca", "Ciruela pasa")
+      )
+    ),
+    Product(
+      id = "tableta-sal-de-maras",
+      name = "Tableta con Sal de Maras",
+      subtitle = "Contraste Andino",
+      price = 20.00,
+      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuBtjvqiC1RcMrQdkyP7Yf9w62rkIHOM4Jgn0Il3klI55dtJU6zJ8x3iLaJ5GzhJ7RMAunTfKel9wrw2I4bku8rcb9YlcGtvBB1KcIf4f18VYln8OQlfNGzeEoIDnQEm2ncUwpLLijXArxLgDJQUDrnp3VAUPC7FT011GGD39yqrmID70w84oMaECDPDTmV28YION8UQGSHpb5cSk0q27Z6eOewMJKmjGI2SYhpdmg4PZKdglQ3YMGbW",
+      detailImageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuD5Y7UgItNwbHvVgJ9cQAqtvrsOYIwYG5yh0k2NSwmcS1boLfqQOg0csuqP-J9BUVoYkad2T3RfNtsvg4o0mRfhHb1GFNjFdnqYP94T6ye14s2E7q438AGF6bwIuj57BDR58VFWzMeaZ6Xm6Bz2zsDGRmYPVb03Qk9cphFtl5wZcHw5l4E6fYs1QoEeeVtD51bZbBdYuuVxk5g6WJq53Id_X8sKNlDaOStKjylSCS4ZD59nc0_No7Ua",
+      badge = "Cacao 68%",
+      badgeColor = "primary",
+      category = "especialidades",
+      categoryLabel = "Colecciones Especiales",
+      origin = "Cacao Cusco y Salineras de Maras",
+      shortDesc = "Cristales minerales rosados que potencian los tonos acaramelados del cacao tibio.",
+      fullDesc = "La pureza de la sal recolectada artesanalmente en las salineras de Maras contrasta magistralmente con el perfil tostado y redondo de nuestro chocolate oscuro al 68%.",
+      ingredients = "Pasta de cacao 68%, azúcar orgánica de caña, manteca de cacao, flor de sal rosada de Maras (Cusco).",
+      netWeight = "80 gramos",
+      aromaProfile = "Mineral salino, cacao tostado y caramelo moreno",
+      conservation = "16°C – 19°C · Lugar fresco y seco",
+      intensity = 4.3,
+      intensityDesc = "El grano de sal intensifica las notas de mantequilla de cacao.",
+      fruitNotes = 3.4,
+      fruitNotesDesc = "Acentúa notas a higo seco y miel de chancaca.",
+      persistence = 4.7,
+      persistenceDesc = "Contraste mineral cristalino que limpia y aviva el paladar.",
+      sensoryProfile = SensoryProfile(
+        cocoaIntensity = 4,
+        sweetnessLevel = 2,
+        aromaNotes = listOf("Sal de Maras", "Caramelo moreno", "Higo seco", "Manteca noble")
+      )
+    ),
+    Product(
+      id = "nibs-cacao-acaramelados",
+      name = "Nibs de Cacao Acaramelados",
+      subtitle = "Textura Pura",
+      price = 16.00,
+      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuA-6P_kOVFE8noc3OCKjWuUGRfNP-n-lBtVDsLLF0iLM1jgeBwTZPvuiKVN3a_r4W2VWMfi3-X7ZyLD3hQ4MJ4LTwEYXWXg0vE1PS9mb2MDqE14B7gFGVX7cwtdZUTe4WNA_3h-5be0PMa8PB_wO2qsEuAaOkKtJg45kYQ0-dxEejEq2J5dhPmhudaBGqkyvU5b21qnRN4hHkE4Iqa9m74-i7urUX3W3idvvj8CDPJS3liC_5BXYjO9",
+      badge = "Crujiente",
+      badgeColor = "secondary",
+      category = "especialidades",
+      categoryLabel = "Colecciones Especiales",
+      origin = "San Martín, Perú",
+      shortDesc = "Trozos de grano tostado envueltos en una micro-capa de caramelo rubio artesanal.",
+      fullDesc = "Nibs seleccionados tostados al punto justo para mantener su complejidad botánica, recubiertos por una sutil película crujiente de azúcar de caña morena.",
+      ingredients = "Nibs de cacao nativo tostado 80%, azúcar rubia de caña 20%.",
+      netWeight = "100 gramos",
+      aromaProfile = "Tostado intenso, nuez y caramelo dorado",
+      conservation = "Ambiente fresco y seco en envase hermético",
+      intensity = 4.1,
+      intensityDesc = "Crocancia directa con el amargor botánico del grano puro.",
+      fruitNotes = 2.8,
+      fruitNotesDesc = "Matices maderosos con dulzor de caramelo de paila.",
+      persistence = 4.3,
+      persistenceDesc = "Crujido sonoro y regusto largo a cacao campesino.",
+      sensoryProfile = SensoryProfile(
+        cocoaIntensity = 4,
+        sweetnessLevel = 2,
+        aromaNotes = listOf("Nibs tostados", "Caramelo dorado", "Nuez", "Madera")
+      )
+    ),
+    Product(
+      id = "chocolate-fruta-amazonica",
+      name = "Chocolate con Fruta Amazónica",
+      subtitle = "Fruta Autóctona",
+      price = 24.00,
+      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuABBj0JQeMIhEh1jzR1w8LIJMMOpu3_HdlLar720GJv83vFADWt4uAAPP_ex5oFLGEAdpr4ddu8LmkAr8gDp6ERmcHH7I1faF1bVKbsV6C5r8823s2QmoSssSIm4jvkMiabhehkPk2ddN5-BgBsesUyERIKBMpFWGvPV6vOECXfPMppmHkKjF0rrDZKGtX_yFNsSUkAkfk7GNqPICsViDp4LUYz5HyY0bgFlQaVcwwjRxv6LKndmCAY",
+      badge = "Cacao 72%",
+      badgeColor = "primary",
+      category = "frutas",
+      categoryLabel = "Cacao & Frutas",
+      origin = "Ucayali y Loreto, Amazonía Peruana",
+      shortDesc = "Coulis natural de aguaje y camu-camu con acidez vibrante en cobertura intensa.",
+      fullDesc = "Equilibrio maestro entre la alta concentración de polifenoles del cacao nativo y la frescura ácida de frutos amazónicos recolectados de manera sostenible en comunidades nativas.",
+      ingredients = "Pasta de cacao 72%, manteca de cacao, pulpa de camu-camu y aguaje silvestre, panela orgánica.",
+      netWeight = "80 gramos",
+      aromaProfile = "Acidez punzante de selva baja, fruta amarilla y cacao oscuro",
+      conservation = "15°C – 18°C · Lugar fresco",
+      intensity = 4.4,
+      intensityDesc = "Acidez vivaz que corta la densidad de la manteca de cacao.",
+      fruitNotes = 4.9,
+      fruitNotesDesc = "Vitamina C natural y astringencia frutal electrizante.",
+      persistence = 4.5,
+      persistenceDesc = "Sensación fresca y frutal prolongada.",
+      sensoryProfile = SensoryProfile(
+        cocoaIntensity = 4,
+        sweetnessLevel = 2,
+        aromaNotes = listOf("Camu-camu", "Aguaje silvestre", "Acidez amazónica", "Cacao oscuro")
+      )
     )
   )
 
@@ -158,40 +341,16 @@ object SanMiguelData {
   val initialCart = listOf(
     CartItem(
       id = "c1",
-      title = "Cofre Clásico Personalizado",
-      subtitle = "12 bombones de autor",
-      unitPrice = 28.00,
+      title = "Barra Gran Cacao 70% Origen",
+      subtitle = "Origen Seleccionado",
+      unitPrice = 18.00,
       quantity = 1,
-      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDe0nxgRYMACpNF-JW2Q_CL1Ozlcn0_LwsG0lbLN9VLd_6u2CZt5EXg-y5Jkgp4LrgF8gMfCVtSqyjnCU1toyvZTjMehd_dGzg44MjpjrlNW41QpyoOyAWg7Ix0Iigxn-t8CE-QfUB7QRqd9vRi69VsRvGGHFNsJOqiXs0R_j5kTymd9HQX_M9fQrQvBQUDExfqTaPv1quJiiU5IWZtwIxWESTpy_iOb0_pXanzpVhq3cMZfuesqU6tPw",
-      customFlavors = listOf(
-        Pair("Praliné Pistacho", 3),
-        Pair("Trufa Frambuesa", 3),
-        Pair("Ganache 72% Origen", 4),
-        Pair("Caramelo Sal de Maras", 2)
-      )
-    ),
-    CartItem(
-      id = "c2",
-      title = "Caja Degustación Orígenes",
-      subtitle = "6 variedades de terruño",
-      unitPrice = 16.90,
-      quantity = 1,
-      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuD3vkmHX3ygVEAm0bRgs9LioDW0xsx7HKNmO_JnqjpfQ65JmUIT3f7vlbiiqLS2gPGWQwi6FT_3P1K5XYQow9g2M-la_3ZnPXimxiVOR7nsqIen3hP705-R7oqsRY4V_70Fkav0ytizLnB4qP-JKAO3T71ussDmVureMQ5ONC7rkewpt1BOZ53kqoHARfsBBf_w7g33ccGOLGyGtiS_hvOS8SHccBEnY85UZ-l41DAno8jlyuKGtY5TLA"
-    ),
-    CartItem(
-      id = "c3",
-      title = "Tableta Criollo 85%",
-      subtitle = "Edición Bean-to-Bar (2 uds.)",
-      unitPrice = 5.80,
-      quantity = 2,
-      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuC6eRR3Cxy8fMsUsBdQ4Na_tj49ZS7YlwhahtSpWLlik5ugVBgZVQW3-ukb58DJMWAhkoSvm-DderfV7RlFn-4D8fYldsYnYTDQlRQ_jd5NqOUXXcCJuw03X0Mwa-rbir1oI9T_173uk06Z5W177TzRsfgB6lVLLEiEOLDHv_12nfw2iauksLkLi5I6ybuRulzdr4jX6MRsPlrrfA1Wv7_j0tCPp44L1WDWIBjeWQYb_fLY7db8tmQOaA"
+      imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCzfn5-EatkC0GTOTODeigjbf8UwZevZ8kHwK4PRlHBsvChOrH1ew8-_tXhWtimZ9lGOhqwSHq5ajFwkKnu8mO3Fen_zdzz2qHgUOwzZ35h30pkl0gn82gpgLzXVMjj5WtT6PAGCk0HSigpuSGurUz8WUcQUsrovAsgaDXYVzAde1sfYh7lKoyZW00tzyBvfEXotle6m9M9yYd_v_kzM5OTzi3mYD_qaTFebAZPyCXlohpndZPPW0YB"
     )
   )
 
   val detailGallery = listOf(
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuDENsV23ScNmjNiuTQqmYbgb8jSbHaAvtZz6h57p4PBBVYowsCYqttGn1ZRg91ELmxD3OhVlor5arhosVdyZMtb0k0ehGZRSoMIS-mkp60qpBskUJGg_R3kipU7frM-9-snJyPYyo7YN3IcqgAzlSUGd9eQ6e9u87YSndU0zhlQxX0pXi2Ggg4xpvEu99IrksVXh1t3zwSW8-jG_Btyi_pNkQ0E7deRrnddixa2NJpYWi5qkB4T3GKl4Q",
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuD6wb1ZHevAf4f8NlEqcqqg0oU95hGSKvfQmXPZ0HVrwe7eDgKS2szMKxF4BuXS_FpFHarEUU4wvqFZBm7ia8Zt-QCP8M_3UwAg3TfCbm28p2F1q9Gag2vXu3mcaPoNemdAVzwEKQVFwiBfSFfqOl_SmcNUM7DbwBs-6BfsdiobOXvoyAN5-bLNQbpZji91gxHCTyXAgTkxu-YQaQttIDvDp5T8DGEPJgaA4rO6xyX5YahzW-OzGydyNA",
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuBdsl2SBJPzT5lUvu0O55tKqmvdEUB1c1QgDMTY7rxMqaIGWm9zgwL2zHVvC_cYcg3e9S5IF-_ZTFEHd9-KKiqP_vuFwGp7mRgZ8lexFwDW-L0KqtFHfSxhqO8W0LBGJT6wCSQ_98_DCaj28rXMXFjutujP-AVN_Dxbk5p4WeLJu7rCaIEGQFwdSBrywEqADxMJS98Izvvwd1dFWlqLxUv4V5Xx8rRAim076_L3nb0T9S16qWATgkhUag",
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuCYLRFnr7knT2cvwmi-FBqztg90ZjFPnZ9U8i4pGDgm8AeKZRZpmp_TSihgEKV8Ro5271ESbg3RzoUJ7wNk3HcBr9s-q9IAo3nINEuLdlqKWPOUUYt9l_VM2EeTz_Zg2UINK7iEpMenJAmZk8wnk1gu_M0iHHOXcWEAqqXItVtOXbrs4MLSipr2Jg_iJvxZCds_YjN0AAzM_8JlVJvq0GYIZpbvizmzFG8UPmDYllLso9dL_nA77GW70w"
+    "https://lh3.googleusercontent.com/aida-public/AB6AXuCzfn5-EatkC0GTOTODeigjbf8UwZevZ8kHwK4PRlHBsvChOrH1ew8-_tXhWtimZ9lGOhqwSHq5ajFwkKnu8mO3Fen_zdzz2qHgUOwzZ35h30pkl0gn82gpgLzXVMjj5WtT6PAGCk0HSigpuSGurUz8WUcQUsrovAsgaDXYVzAde1sfYh7lKoyZW00tzyBvfEXotle6m9M9yYd_v_kzM5OTzi3mYD_qaTFebAZPyCXlohpndZPPW0YB",
+    "https://lh3.googleusercontent.com/aida-public/AB6AXuBGhmDQOOIZMnPOKG7142iBfX4CcFFXbwXUREKNrkDCSqB99cRmVPv8TTsb1H_saR3LlrOfxmzXTfzQYqgr9Oj4MNDH3mzqakb1o7BHe8T45Ri61AKHvZh3iqPoOlKWyVnQPMZwJjZ-6VkT9yuZZropZDg8CK7RDHrY_LNdWHaSWxld8NdRgGvh5VwxNY-S6iXYWjufnacYOXXShMur0oOJFuSizC_5t0ZKJAXnkqEvrsWs5d0Yp9Dk"
   )
 }

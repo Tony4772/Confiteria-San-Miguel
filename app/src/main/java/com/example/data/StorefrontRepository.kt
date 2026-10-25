@@ -19,25 +19,37 @@ object StorefrontRepository {
   private fun database() = FirebaseFirestore.getInstance(DATABASE_ID)
 
   fun observeCategories(): Flow<List<ShopCategory>> = callbackFlow {
-    val registration = database().collection("categories").addSnapshotListener { snapshot, error ->
-      if (error != null || snapshot == null) {
-        return@addSnapshotListener
+    try {
+      val registration = database().collection("categories").addSnapshotListener { snapshot, error ->
+        if (error != null || snapshot == null) {
+          trySend(SanMiguelData.categories.mapIndexed { index, pair -> ShopCategory("cat_$index", pair.first, pair.second, index) })
+          return@addSnapshotListener
+        }
+        val items = snapshot.documents.mapNotNull { it.toCategory() }.sortedBy { it.sort }
+        trySend(if (items.isNotEmpty()) items else SanMiguelData.categories.mapIndexed { index, pair -> ShopCategory("cat_$index", pair.first, pair.second, index) })
       }
-      val items = snapshot.documents.mapNotNull { it.toCategory() }.sortedBy { it.sort }
-      trySend(items)
+      awaitClose { registration.remove() }
+    } catch (_: Exception) {
+      trySend(SanMiguelData.categories.mapIndexed { index, pair -> ShopCategory("cat_$index", pair.first, pair.second, index) })
+      awaitClose {}
     }
-    awaitClose { registration.remove() }
   }
 
   fun observeCopy(): Flow<StorefrontCopy> = callbackFlow {
-    val registration = database().collection("settings").document("storefront")
-      .addSnapshotListener { snapshot, error ->
-        if (error != null || snapshot == null || !snapshot.exists()) {
-          return@addSnapshotListener
+    try {
+      val registration = database().collection("settings").document("storefront")
+        .addSnapshotListener { snapshot, error ->
+          if (error != null || snapshot == null || !snapshot.exists()) {
+            trySend(StorefrontCopy())
+            return@addSnapshotListener
+          }
+          trySend(snapshot.toCopy())
         }
-        trySend(snapshot.toCopy())
-      }
-    awaitClose { registration.remove() }
+      awaitClose { registration.remove() }
+    } catch (_: Exception) {
+      trySend(StorefrontCopy())
+      awaitClose {}
+    }
   }
 
   suspend fun saveCategory(category: ShopCategory) {

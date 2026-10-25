@@ -362,7 +362,7 @@ fun HomeScreen(
       }
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Banner Destacado: Arma tu Caja de Bombones
+        // Banner: Cómo Realizar tu Pedido
         Card(
           modifier = Modifier
             .fillMaxWidth()
@@ -396,7 +396,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
               Text(
-                text = "Arma tu Caja de Bombones",
+                text = "Elige, paga y coordina",
                 style = MaterialTheme.typography.titleMedium.copy(
                   fontFamily = FontFamily.Serif,
                   fontWeight = FontWeight.Bold
@@ -404,7 +404,7 @@ fun HomeScreen(
                 color = ChocolatePrimaryContainer
               )
               Text(
-                text = "Elige tus sabores favoritos y personaliza tu estuche a tu medida.",
+                text = "Compra en línea con tarjeta o Yape y coordinamos contigo el envío o recojo en nuestro atelier.",
                 style = MaterialTheme.typography.bodySmall,
                 color = OnSurfaceVariant
               )
@@ -416,7 +416,7 @@ fun HomeScreen(
               shape = RoundedCornerShape(20.dp),
               contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 8.dp)
             ) {
-              Text("Armar", color = CreamSurface, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+              Text("Catálogo", color = CreamSurface, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
           }
         }
@@ -441,7 +441,7 @@ fun HomeScreen(
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-              text = uiState.storefront.categoriesHeading.ifBlank { "Categorías" },
+              text = uiState.storefront.categoriesHeading.ifBlank { "CategorÃ­as" },
               style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
               color = OnSurfaceDark
             )
@@ -551,7 +551,7 @@ fun HomeScreen(
 
         if (displayProducts.isEmpty()) {
           Text(
-            text = "No hay productos en esta categoría.",
+            text = "No hay productos en esta categorÃ­a.",
             color = OnSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp)
           )
@@ -653,7 +653,7 @@ fun HomeScreen(
         }
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Horario, Dirección y Contacto de la Tienda
+        // Horario, DirecciÃ³n y Contacto de la Tienda
         StoreLocationCard(storefront = uiState.storefront)
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -780,7 +780,7 @@ private fun ProductCard(
 
       Spacer(modifier = Modifier.height(8.dp))
 
-      // Origen / Categoría artesanal
+      // Origen / CategorÃ­a artesanal
       Text(
         text = product.origin.ifBlank { product.category },
         style = MaterialTheme.typography.labelSmall.copy(
@@ -847,7 +847,7 @@ private fun ProductCard(
         ) {
           Icon(
             imageVector = Icons.Default.Add,
-            contentDescription = "Añadir al carrito",
+            contentDescription = "AÃ±adir al carrito",
             tint = CreamSurfaceContainerLowest,
             modifier = Modifier.size(18.dp)
           )
@@ -900,7 +900,7 @@ private fun StoreLocationCard(
           Spacer(modifier = Modifier.width(10.dp))
           Column {
             Text(
-              text = "Nuestra Chocolatería",
+              text = "Nuestra ChocolaterÃ­a",
               style = MaterialTheme.typography.titleSmall.copy(
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.Bold
@@ -908,7 +908,7 @@ private fun StoreLocationCard(
               color = ChocolatePrimaryContainer
             )
             Text(
-              text = "Chocolatería Artesanal & Tienda en San Miguel",
+              text = "ChocolaterÃ­a Artesanal & Tienda en San Miguel",
               style = MaterialTheme.typography.labelSmall,
               color = OnSurfaceVariant
             )
@@ -929,7 +929,7 @@ private fun StoreLocationCard(
         }
       }
 
-      // Dirección
+      // DirecciÃ³n
       Row(
         modifier = Modifier
           .fillMaxWidth()
@@ -947,7 +947,7 @@ private fun StoreLocationCard(
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
           Text(
-            text = "Dirección",
+            text = "DirecciÃ³n",
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
             color = ChocolatePrimaryContainer
           )
@@ -969,11 +969,11 @@ private fun StoreLocationCard(
             }
           }
         ) {
-          Text("Cómo llegar", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldSecondary)
+          Text("CÃ³mo llegar", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GoldSecondary)
         }
       }
 
-      // Horario de Atención
+      // Horario de AtenciÃ³n
       Row(
         modifier = Modifier
           .fillMaxWidth()
@@ -991,7 +991,7 @@ private fun StoreLocationCard(
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
           Text(
-            text = "Horario de Atención",
+            text = "Horario de AtenciÃ³n",
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
             color = ChocolatePrimaryContainer
           )
@@ -1003,7 +1003,7 @@ private fun StoreLocationCard(
         }
       }
 
-      // Teléfono / WhatsApp
+      // TelÃ©fono / WhatsApp
       Row(
         modifier = Modifier
           .fillMaxWidth()
@@ -1021,7 +1021,7 @@ private fun StoreLocationCard(
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
           Text(
-            text = "Teléfono y Pedidos",
+            text = "TelÃ©fono y Pedidos",
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
             color = ChocolatePrimaryContainer
           )

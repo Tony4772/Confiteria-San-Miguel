@@ -114,10 +114,26 @@ fun CartScreen(
   onToggleGiftWrap: (Boolean) -> Unit,
   onUpdateGiftMessage: (String) -> Unit,
   onSelectPayment: (PaymentMethod) -> Unit,
-  onCheckout: (CardCheckout?, YapeCheckout?) -> Unit,
+  onCheckout: (
+    CardCheckout?,
+    YapeCheckout?,
+    String,
+    String,
+    String,
+    String,
+    String,
+    String
+  ) -> Unit,
   onNavigateToBuilder: () -> Unit
 ) {
   val scrollState = rememberScrollState()
+  var customerName by remember { mutableStateOf(uiState.accountName.orEmpty()) }
+  var customerEmail by remember { mutableStateOf(uiState.accountEmail.orEmpty()) }
+  var customerPhone by remember { mutableStateOf("") }
+  var customerAddress by remember { mutableStateOf("") }
+  var customerDistrict by remember { mutableStateOf("San Miguel") }
+  var customerNotes by remember { mutableStateOf("") }
+
   var cardNumber by remember { mutableStateOf("") }
   var cardMonth by remember { mutableStateOf("") }
   var cardYear by remember { mutableStateOf("") }
@@ -170,7 +186,7 @@ fun CartScreen(
     Spacer(modifier = Modifier.height(8.dp))
 
     Text(
-      text = "Aquí está lo que elegiste en Inicio. Revísalo y, si quieres, paga más abajo.",
+      text = "AquÃ­ estÃ¡ lo que elegiste en Inicio. RevÃ­salo y, si quieres, paga mÃ¡s abajo.",
       style = MaterialTheme.typography.bodyMedium,
       color = OnSurfaceVariant
     )
@@ -194,13 +210,13 @@ fun CartScreen(
           Spacer(modifier = Modifier.width(8.dp))
           if (uiState.remainingForFreeShipping > 0.0) {
             Text(
-              text = "¡Añade S/ ${String.format(java.util.Locale.US, "%.2f", uiState.remainingForFreeShipping)} más para Envío Gratis a Domicilio!",
+              text = "Â¡AÃ±ade S/ ${String.format(java.util.Locale.US, "%.2f", uiState.remainingForFreeShipping)} mÃ¡s para EnvÃ­o Gratis a Domicilio!",
               style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
               color = OnSecondaryFixed
             )
           } else {
             Text(
-              text = "¡Has alcanzado el Envío Gratis a Domicilio!",
+              text = "Â¡Has alcanzado el EnvÃ­o Gratis a Domicilio!",
               style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
               color = OnSecondaryFixed
             )
@@ -263,13 +279,13 @@ fun CartScreen(
           horizontalAlignment = Alignment.CenterHorizontally
         ) {
           Text(
-            text = "Tu carrito está vacío",
+            text = "Tu carrito estÃ¡ vacÃ­o",
             style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif),
             color = ChocolatePrimaryContainer
           )
           Spacer(modifier = Modifier.height(8.dp))
           Text(
-            text = "Ve a Inicio, elige un producto y agrégalo.",
+            text = "Ve a Inicio, elige un producto y agrÃ©galo.",
             style = MaterialTheme.typography.bodyMedium,
             color = OnSurfaceVariant
           )
@@ -339,7 +355,7 @@ fun CartScreen(
     ) {
       // Option A: Home delivery
       DeliveryOptionCard(
-        title = "Envío a Domicilio",
+        title = "EnvÃ­o a Domicilio",
         subtitle = "Empaque cuidadoso",
         highlight = "Lima Metropolitana",
         icon = Icons.Default.LocalShipping,
@@ -352,7 +368,7 @@ fun CartScreen(
       DeliveryOptionCard(
         title = "Recojo en Tienda",
         subtitle = uiState.storefront.storeAddress,
-        highlight = "Gratis · San Miguel",
+        highlight = "Gratis Â· San Miguel",
         icon = Icons.Default.Storefront,
         isSelected = uiState.deliveryMode == DeliveryMode.PICKUP_SERRANO,
         modifier = Modifier.weight(1f),
@@ -429,7 +445,7 @@ fun CartScreen(
                     }
                     val min = minute.toString().padStart(2, '0')
                     val monthNames = listOf("ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic")
-                    val label = "$day ${monthNames[month]} $year · $h12:$min $amPm"
+                    val label = "$day ${monthNames[month]} $year Â· $h12:$min $amPm"
                     onSelectTimeSlot(label)
                   },
                   now.get(Calendar.HOUR_OF_DAY),
@@ -472,7 +488,7 @@ fun CartScreen(
         if (uiState.selectedTimeSlot.isNotBlank()) {
           Spacer(modifier = Modifier.height(6.dp))
           Text(
-            text = "✓ Entrega programada",
+            text = "âœ“ Entrega programada",
             style = MaterialTheme.typography.labelSmall,
             color = GoldSecondary
           )
@@ -526,7 +542,7 @@ fun CartScreen(
             Spacer(modifier = Modifier.height(2.dp))
 
             Text(
-              text = "Lazo de satén dorado hecho a mano, caja precintada con lacre de Fernandina de Jagua y dedicatoria caligráfica.",
+              text = "Lazo de satÃ©n dorado hecho a mano, caja precintada con lacre de Fernandina de Jagua y dedicatoria caligrÃ¡fica.",
               style = MaterialTheme.typography.bodySmall,
               color = OnSurfaceVariant,
               lineHeight = 16.sp
@@ -591,6 +607,95 @@ fun CartScreen(
       }
     }
 
+    // Datos del Cliente (Checkout)
+    Card(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RoundedCornerShape(14.dp),
+      colors = CardDefaults.cardColors(containerColor = CreamSurfaceContainerLowest),
+      elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+      Column(
+        modifier = Modifier.padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+      ) {
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Text(
+            text = "DATOS DE CONTACTO",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+            color = GoldSecondary
+          )
+          Icon(Icons.Default.Verified, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(16.dp))
+        }
+
+        OutlinedTextField(
+          value = customerName,
+          onValueChange = { customerName = it },
+          label = { Text("Nombre completo *") },
+          singleLine = true,
+          modifier = Modifier.fillMaxWidth(),
+          shape = RoundedCornerShape(10.dp)
+        )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+          OutlinedTextField(
+            value = customerPhone,
+            onValueChange = { customerPhone = it.filter(Char::isDigit).take(9) },
+            label = { Text("Teléfono / WhatsApp *") },
+            placeholder = { Text("906591037") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(10.dp)
+          )
+
+          OutlinedTextField(
+            value = customerEmail,
+            onValueChange = { customerEmail = it },
+            label = { Text("Correo electrónico *") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            singleLine = true,
+            modifier = Modifier.weight(1.2f),
+            shape = RoundedCornerShape(10.dp)
+          )
+        }
+
+        if (uiState.deliveryMode == DeliveryMode.REFRIGERATED) {
+          OutlinedTextField(
+            value = customerAddress,
+            onValueChange = { customerAddress = it },
+            label = { Text("Dirección de entrega *") },
+            placeholder = { Text("Av. / Jr. / Calle y número") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp)
+          )
+
+          OutlinedTextField(
+            value = customerDistrict,
+            onValueChange = { customerDistrict = it },
+            label = { Text("Distrito (Lima)") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp)
+          )
+        }
+
+        OutlinedTextField(
+          value = customerNotes,
+          onValueChange = { customerNotes = it },
+          label = { Text("Notas de entrega (opcional)") },
+          placeholder = { Text("Timbre, piso, indicaciones especiales...") },
+          singleLine = true,
+          modifier = Modifier.fillMaxWidth(),
+          shape = RoundedCornerShape(10.dp)
+        )
+      }
+    }
+
     Spacer(modifier = Modifier.height(20.dp))
 
     Text(
@@ -607,8 +712,8 @@ fun CartScreen(
 
     Text(
       text = when (uiState.paymentMethod) {
-        PaymentMethod.YAPE -> "El código de aprobación sale en Yape, en el menú lateral. El cobro se hace ahora."
-        PaymentMethod.CARD -> "El cobro con tarjeta se hace ahora, a través de Culqi."
+        PaymentMethod.YAPE -> "El cÃ³digo de aprobaciÃ³n sale en Yape, en el menÃº lateral. El cobro se hace ahora."
+        PaymentMethod.CARD -> "El cobro con tarjeta se hace ahora, a travÃ©s de Culqi."
       },
       style = MaterialTheme.typography.bodySmall,
       color = OnSurfaceVariant,
@@ -643,7 +748,7 @@ fun CartScreen(
 
     if (uiState.paymentMethod == PaymentMethod.CARD) {
       Text(
-        text = "Ingresa los datos de tu tarjeta de crédito o débito:",
+        text = "Ingresa los datos de tu tarjeta de crÃ©dito o dÃ©bito:",
         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
         color = ChocolatePrimaryContainer
       )
@@ -653,7 +758,7 @@ fun CartScreen(
         onValueChange = { cardNumber = it.filter(Char::isDigit).take(19) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
-        label = { Text("Número de tarjeta (16 dígitos)") },
+        label = { Text("NÃºmero de tarjeta (16 dÃ­gitos)") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
       )
       Spacer(modifier = Modifier.height(8.dp))
@@ -671,7 +776,7 @@ fun CartScreen(
           onValueChange = { cardYear = it.filter(Char::isDigit).take(4) },
           modifier = Modifier.weight(1f).fillMaxHeight(),
           singleLine = true,
-          label = { Text("Año") },
+          label = { Text("AÃ±o") },
           placeholder = { Text("AAAA") },
           keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
@@ -686,7 +791,7 @@ fun CartScreen(
         )
       }
       Text(
-        text = "🔒 Pago 100% seguro y encriptado a través de Culqi.",
+        text = "ðŸ”’ Pago 100% seguro y encriptado a travÃ©s de Culqi.",
         style = MaterialTheme.typography.labelSmall,
         color = OnSurfaceVariant,
         modifier = Modifier.padding(top = 4.dp, start = 4.dp)
@@ -696,7 +801,7 @@ fun CartScreen(
 
     if (uiState.paymentMethod == PaymentMethod.YAPE) {
       Text(
-        text = "Paga con Yape de forma rápida y sencilla:",
+        text = "Paga con Yape de forma rÃ¡pida y sencilla:",
         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
         color = ChocolatePrimaryContainer
       )
@@ -706,7 +811,7 @@ fun CartScreen(
         onValueChange = { yapePhone = it.filter(Char::isDigit).take(9) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
-        label = { Text("Celular Yape (9 dígitos)") },
+        label = { Text("Celular Yape (9 dÃ­gitos)") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
       )
       Spacer(modifier = Modifier.height(8.dp))
@@ -715,12 +820,12 @@ fun CartScreen(
         onValueChange = { yapeOtp = it.filter(Char::isDigit).take(6) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
-        label = { Text("Código de aprobación (6 dígitos)") },
+        label = { Text("CÃ³digo de aprobaciÃ³n (6 dÃ­gitos)") },
         placeholder = { Text("Ej. 123456") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
       )
       Text(
-        text = "💡 Abre tu app Yape, pulsa en el menú lateral y copia tu 'Código de aprobación'.",
+        text = "ðŸ’¡ Abre tu app Yape, pulsa en el menÃº lateral y copia tu 'CÃ³digo de aprobaciÃ³n'.",
         style = MaterialTheme.typography.labelSmall,
         color = OnSurfaceVariant,
         modifier = Modifier.padding(top = 4.dp, start = 4.dp)
@@ -743,7 +848,7 @@ fun CartScreen(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.SpaceBetween
         ) {
-          Text(text = "Subtotal confitería", color = OnSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+          Text(text = "Subtotal confiterÃ­a", color = OnSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
           Text(
             text = "S/ ${String.format(java.util.Locale.US, "%.2f", uiState.cartSubtotal)}",
             fontWeight = FontWeight.SemiBold,
@@ -758,7 +863,7 @@ fun CartScreen(
         ) {
           Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-              text = if (uiState.deliveryMode == DeliveryMode.PICKUP_SERRANO) "Recojo en Tienda (San Miguel)" else "Envío a Domicilio",
+              text = if (uiState.deliveryMode == DeliveryMode.PICKUP_SERRANO) "Recojo en Tienda (San Miguel)" else "EnvÃ­o a Domicilio",
               color = OnSurfaceVariant,
               style = MaterialTheme.typography.bodyMedium
             )
@@ -806,7 +911,7 @@ fun CartScreen(
               color = OnSurfaceVariant
             )
             Text(
-              text = "Emitimos boleta y factura electrónica.",
+              text = "Emitimos boleta y factura electrÃ³nica.",
               style = MaterialTheme.typography.labelSmall,
               color = OnSurfaceVariant
             )
@@ -871,7 +976,7 @@ fun CartScreen(
           Icon(Icons.Default.Info, contentDescription = null, tint = ChocolatePrimaryContainer, modifier = Modifier.size(20.dp))
           Spacer(modifier = Modifier.width(8.dp))
           Text(
-            text = "Recuerda: Si aún no has iniciado sesión, al pulsar Pagar se abrirá tu perfil para identificarte.",
+            text = "Pago 100% seguro a través de Culqi con tarjeta o Yape. Coordinamos la entrega directamente a tu WhatsApp o teléfono.",
             style = MaterialTheme.typography.bodySmall,
             color = OnSecondaryFixed
           )
@@ -893,7 +998,16 @@ fun CartScreen(
         } else {
           null
         }
-        onCheckout(card, yape)
+        onCheckout(
+          card,
+          yape,
+          customerName,
+          customerEmail,
+          customerPhone,
+          customerAddress,
+          customerDistrict,
+          customerNotes
+        )
       },
       enabled = !uiState.orderInProgress && uiState.cartItems.isNotEmpty(),
       modifier = Modifier
@@ -1051,7 +1165,7 @@ private fun CartItemCard(
               verticalAlignment = Alignment.CenterVertically
             ) {
               Text(
-                text = "−",
+                text = "âˆ’",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = OnSurfaceVariant,

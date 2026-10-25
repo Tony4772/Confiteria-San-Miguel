@@ -22,12 +22,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Storefront
-import androidx.compose.material.icons.outlined.CardGiftcard
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.Icon
@@ -75,49 +77,58 @@ fun AppBottomNav(
           .fillMaxWidth()
           .widthIn(max = 640.dp)
           .height(64.dp)
-          .padding(horizontal = 8.dp),
+          .padding(horizontal = 4.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
       ) {
-      BottomNavItem(
-        label = "Inicio",
-        selectedIcon = Icons.Filled.Storefront,
-        unselectedIcon = Icons.Outlined.Storefront,
-        isSelected = currentScreen is CurrentScreen.Home,
-        testTag = "tab_inicio",
-        onClick = { onNavigate(CurrentScreen.Home) }
-      )
+        BottomNavItem(
+          label = "Inicio",
+          selectedIcon = Icons.Filled.Home,
+          unselectedIcon = Icons.Outlined.Home,
+          isSelected = currentScreen is CurrentScreen.Home,
+          testTag = "tab_inicio",
+          onClick = { onNavigate(CurrentScreen.Home) }
+        )
 
-      BottomNavItem(
-        label = "Armar Caja",
-        selectedIcon = Icons.Filled.CardGiftcard,
-        unselectedIcon = Icons.Outlined.CardGiftcard,
-        isSelected = currentScreen is CurrentScreen.BoxBuilder,
-        testTag = "tab_armar_caja",
-        onClick = { onNavigate(CurrentScreen.BoxBuilder) }
-      )
+        BottomNavItem(
+          label = "Catálogo",
+          selectedIcon = Icons.Filled.Storefront,
+          unselectedIcon = Icons.Outlined.Storefront,
+          isSelected = currentScreen is CurrentScreen.Catalog,
+          testTag = "tab_catalogo",
+          onClick = { onNavigate(CurrentScreen.Catalog) }
+        )
 
-      BottomNavItem(
-        label = "Carrito",
-        selectedIcon = Icons.Filled.ShoppingBag,
-        unselectedIcon = Icons.Outlined.ShoppingBag,
-        isSelected = currentScreen is CurrentScreen.Cart,
-        badgeCount = cartBadgeCount,
-        testTag = "tab_bolsa",
-        onClick = { onNavigate(CurrentScreen.Cart) }
-      )
+        BottomNavItem(
+          label = "Visítanos",
+          selectedIcon = Icons.Filled.Place,
+          unselectedIcon = Icons.Outlined.Place,
+          isSelected = currentScreen is CurrentScreen.VisitUs,
+          testTag = "tab_visitanos",
+          onClick = { onNavigate(CurrentScreen.VisitUs) }
+        )
 
-      BottomNavItem(
-        label = "Mi Cuenta",
-        selectedIcon = Icons.Filled.Person,
-        unselectedIcon = Icons.Outlined.Person,
-        isSelected = currentScreen is CurrentScreen.Profile || currentScreen is CurrentScreen.ShopAdmin,
-        testTag = "tab_perfil",
-        onClick = { onNavigate(CurrentScreen.Profile) }
-      )
+        BottomNavItem(
+          label = "Carrito",
+          selectedIcon = Icons.Filled.ShoppingBag,
+          unselectedIcon = Icons.Outlined.ShoppingBag,
+          isSelected = currentScreen is CurrentScreen.Cart,
+          badgeCount = cartBadgeCount,
+          testTag = "tab_bolsa",
+          onClick = { onNavigate(CurrentScreen.Cart) }
+        )
+
+        BottomNavItem(
+          label = "Cuenta",
+          selectedIcon = Icons.Filled.Person,
+          unselectedIcon = Icons.Outlined.Person,
+          isSelected = currentScreen is CurrentScreen.Profile || currentScreen is CurrentScreen.ShopAdmin,
+          testTag = "tab_perfil",
+          onClick = { onNavigate(CurrentScreen.Profile) }
+        )
+      }
     }
   }
-}
 }
 
 @Composable
@@ -134,7 +145,7 @@ private fun BottomNavItem(
 
   Column(
     modifier = Modifier
-      .width(72.dp)
+      .width(66.dp)
       .height(56.dp)
       .clickable(
         interactionSource = interactionSource,
@@ -148,7 +159,7 @@ private fun BottomNavItem(
     // Indicator line
     Box(
       modifier = Modifier
-        .width(32.dp)
+        .width(28.dp)
         .height(3.dp)
         .clip(RoundedCornerShape(2.dp))
         .background(if (isSelected) GoldSecondary else Color.Transparent)
@@ -185,11 +196,12 @@ private fun BottomNavItem(
     Text(
       text = label,
       style = MaterialTheme.typography.labelSmall.copy(
-        fontSize = 11.sp,
+        fontSize = 10.5.sp,
         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
       ),
       color = if (isSelected) ChocolatePrimaryContainer else OnSurfaceVariant,
-      modifier = Modifier.padding(top = 2.dp)
+      modifier = Modifier.padding(top = 2.dp),
+      maxLines = 1
     )
   }
 }

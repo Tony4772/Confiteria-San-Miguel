@@ -93,10 +93,13 @@ fun ProfileScreen(
   onAuthMessage: (String) -> Unit,
   onSignOut: () -> Unit,
   onOpenShop: () -> Unit,
-  onDeleteAccount: () -> Unit
+  onDeleteAccount: () -> Unit,
+  onCmsAdminLogin: (String) -> Unit = {}
 ) {
   val scrollState = rememberScrollState()
   var showDeleteDialog by remember { mutableStateOf(false) }
+  var showCmsLoginDialog by remember { mutableStateOf(false) }
+  var cmsPasswordInput by remember { mutableStateOf("") }
 
   BoxWithConstraints(
     modifier = Modifier
@@ -424,6 +427,50 @@ fun ProfileScreen(
           }
         }
       }
+    } else {
+      Card(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(bottom = 16.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = CreamSurfaceContainerLowest),
+        border = androidx.compose.foundation.BorderStroke(1.dp, GoldSecondaryContainer.copy(alpha = 0.5f))
+      ) {
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(14.dp),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+          Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+            Text("👑", fontSize = 18.sp)
+            Spacer(modifier = Modifier.width(10.dp))
+            Column {
+              Text(
+                text = "Acceso Administrativo CMS",
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = ChocolatePrimaryContainer
+              )
+              Text(
+                text = "Gestionar productos, precios y horarios",
+                style = MaterialTheme.typography.bodySmall,
+                color = OnSurfaceVariant
+              )
+            }
+          }
+          Button(
+            onClick = {
+              cmsPasswordInput = ""
+              showCmsLoginDialog = true
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = ChocolatePrimaryContainer),
+            shape = RoundedCornerShape(10.dp)
+          ) {
+            Text("Ingresar", color = CreamSurface, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+          }
+        }
+      }
     }
 
     Text(
@@ -496,6 +543,47 @@ fun ProfileScreen(
       }
     }
     }
+  }
+
+  if (showCmsLoginDialog) {
+    androidx.compose.material3.AlertDialog(
+      onDismissRequest = { showCmsLoginDialog = false },
+      title = {
+        Text("Acceso al Panel CMS", fontWeight = FontWeight.Bold, color = ChocolatePrimaryContainer)
+      },
+      text = {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Text("Ingresa la clave de administración para gestionar productos, horarios y precios compartidos con la web:")
+          OutlinedTextField(
+            value = cmsPasswordInput,
+            onValueChange = { cmsPasswordInput = it },
+            label = { Text("Contraseña CMS") },
+            visualTransformation = PasswordVisualTransformation(),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+          )
+        }
+      },
+      confirmButton = {
+        Button(
+          onClick = {
+            val pass = cmsPasswordInput.trim()
+            if (pass.isNotEmpty()) {
+              showCmsLoginDialog = false
+              onCmsAdminLogin(pass)
+            }
+          },
+          colors = ButtonDefaults.buttonColors(containerColor = ChocolatePrimaryContainer)
+        ) {
+          Text("Verificar", color = CreamSurface)
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { showCmsLoginDialog = false }) {
+          Text("Cancelar")
+        }
+      }
+    )
   }
 }
 }

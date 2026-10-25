@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Eco
@@ -33,13 +32,11 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.Loupe
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Button
@@ -65,7 +62,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.data.SanMiguelData
 import com.example.model.Product
 import com.example.ui.components.SanMiguelImage
 import com.example.ui.theme.ChocolatePrimaryContainer
@@ -83,7 +79,6 @@ import com.example.ui.theme.OnSurfaceDark
 import com.example.ui.theme.OnSurfaceVariant
 import com.example.ui.theme.OutlineGrey
 import com.example.ui.theme.SecondaryFixed
-import com.example.ui.theme.SecondaryFixedDim
 import com.example.viewmodel.ShopUiState
 
 @Composable
@@ -102,7 +97,12 @@ fun ProductDetailScreen(
 ) {
   val scrollState = rememberScrollState()
   val isFavorite = uiState.favorites.contains(product.id)
-  val currentImage = SanMiguelData.detailGallery.getOrElse(uiState.detailGalleryIndex) { product.imageUrl }
+  val galleryImages = listOfNotNull(
+    product.imageUrl.ifBlank { null },
+    product.detailImageUrl.ifBlank { null }
+  ).ifEmpty { listOf(product.imageUrl) }
+
+  val currentImage = galleryImages.getOrElse(uiState.detailGalleryIndex % galleryImages.size) { product.imageUrl }
   val totalPackPrice = product.price * uiState.detailQuantity
 
   BoxWithConstraints(
@@ -113,7 +113,6 @@ fun ProductDetailScreen(
     val isTabletOrDesktop = maxWidth >= 640.dp
 
     if (isTabletOrDesktop) {
-      // 2-Pane Side-by-Side Responsive Layout for Tablets/Desktop
       Row(
         modifier = Modifier
           .fillMaxSize()
@@ -122,7 +121,6 @@ fun ProductDetailScreen(
           .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(20.dp)
       ) {
-        // Left Column: Media showcase (sticky/pinned)
         Box(
           modifier = Modifier
             .weight(0.46f)
@@ -131,6 +129,7 @@ fun ProductDetailScreen(
           ProductMediaShowcase(
             product = product,
             currentImage = currentImage,
+            galleryImages = galleryImages,
             galleryIndex = uiState.detailGalleryIndex,
             isFavorite = isFavorite,
             onGallerySelect = onGallerySelect,
@@ -138,7 +137,6 @@ fun ProductDetailScreen(
           )
         }
 
-        // Right Column: Form & specs (scrollable)
         Column(
           modifier = Modifier
             .weight(0.54f)
@@ -160,7 +158,6 @@ fun ProductDetailScreen(
         }
       }
     } else {
-      // Mobile Single-column Vertical Stack
       Column(
         modifier = Modifier
           .fillMaxSize()
@@ -170,6 +167,7 @@ fun ProductDetailScreen(
         ProductMediaShowcase(
           product = product,
           currentImage = currentImage,
+          galleryImages = galleryImages,
           galleryIndex = uiState.detailGalleryIndex,
           isFavorite = isFavorite,
           onGallerySelect = onGallerySelect,
@@ -197,6 +195,7 @@ fun ProductDetailScreen(
 private fun ProductMediaShowcase(
   product: Product,
   currentImage: String,
+  galleryImages: List<String>,
   galleryIndex: Int,
   isFavorite: Boolean,
   onGallerySelect: (Int) -> Unit,
@@ -224,34 +223,34 @@ private fun ProductMediaShowcase(
         modifier = Modifier.fillMaxSize()
       )
 
-      // Floating badge top left
-      Row(
-        modifier = Modifier
-          .align(Alignment.TopStart)
-          .padding(10.dp)
-          .clip(CircleShape)
-          .background(ChocolatePrimaryContainer.copy(alpha = 0.85f))
-          .padding(horizontal = 10.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Icon(
-          imageVector = Icons.Default.AutoAwesome,
-          contentDescription = null,
-          tint = GoldSecondaryContainer,
-          modifier = Modifier.size(13.dp)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-          text = "EDICIÓN COLECCIÓN 2024",
-          style = MaterialTheme.typography.labelSmall.copy(
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Bold
-          ),
-          color = GoldSecondaryContainer
-        )
+      product.badge?.let { badgeText ->
+        Row(
+          modifier = Modifier
+            .align(Alignment.TopStart)
+            .padding(10.dp)
+            .clip(CircleShape)
+            .background(ChocolatePrimaryContainer.copy(alpha = 0.88f))
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Icon(
+            imageVector = Icons.Default.AutoAwesome,
+            contentDescription = null,
+            tint = GoldSecondaryContainer,
+            modifier = Modifier.size(13.dp)
+          )
+          Spacer(modifier = Modifier.width(4.dp))
+          Text(
+            text = badgeText.uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(
+              fontSize = 9.sp,
+              fontWeight = FontWeight.Bold
+            ),
+            color = GoldSecondaryContainer
+          )
+        }
       }
 
-      // Heart Icon top right
       IconButton(
         onClick = onToggleFavorite,
         modifier = Modifier
@@ -269,68 +268,38 @@ private fun ProductMediaShowcase(
           modifier = Modifier.size(20.dp)
         )
       }
-
-      // Zoom guidance pill bottom right
-      Row(
-        modifier = Modifier
-          .align(Alignment.BottomEnd)
-          .padding(10.dp)
-          .clip(CircleShape)
-          .background(CreamSurfaceContainerLowest.copy(alpha = 0.85f))
-          .padding(horizontal = 8.dp, vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Icon(
-          imageVector = Icons.Default.Loupe,
-          contentDescription = null,
-          tint = OnSurfaceVariant,
-          modifier = Modifier.size(13.dp)
-        )
-        Spacer(modifier = Modifier.width(3.dp))
-        Text(
-          text = "Zoom",
-          style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-          color = OnSurfaceVariant
-        )
-      }
     }
 
-    Spacer(modifier = Modifier.height(14.dp))
-
-    // Gallery Thumbnail Rail
-    Row(
-      horizontalArrangement = Arrangement.spacedBy(12.dp),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      val galleryThumbnails = listOf(
-        SanMiguelData.detailGallery[1],
-        SanMiguelData.detailGallery[2],
-        SanMiguelData.detailGallery[3]
-      )
-
-      galleryThumbnails.forEachIndexed { index, thumbUrl ->
-        val isSelected = galleryIndex == (index + 1) % SanMiguelData.detailGallery.size
-        Box(
-          modifier = Modifier
-            .size(56.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(CreamSurfaceContainer)
-            .border(
-              width = if (isSelected) 2.dp else 0.dp,
-              color = if (isSelected) GoldSecondary else Color.Transparent,
-              shape = RoundedCornerShape(10.dp)
-            )
-            .clickable { onGallerySelect((index + 1) % SanMiguelData.detailGallery.size) }
-            .padding(2.dp)
-        ) {
-          SanMiguelImage(
-            model = thumbUrl,
-            contentDescription = "Miniatura $index",
-            contentScale = ContentScale.Crop,
+    if (galleryImages.size > 1) {
+      Spacer(modifier = Modifier.height(14.dp))
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        galleryImages.forEachIndexed { index, thumbUrl ->
+          val isSelected = (galleryIndex % galleryImages.size) == index
+          Box(
             modifier = Modifier
-              .fillMaxSize()
-              .clip(RoundedCornerShape(8.dp))
-          )
+              .size(56.dp)
+              .clip(RoundedCornerShape(10.dp))
+              .background(CreamSurfaceContainer)
+              .border(
+                width = if (isSelected) 2.dp else 0.dp,
+                color = if (isSelected) GoldSecondary else Color.Transparent,
+                shape = RoundedCornerShape(10.dp)
+              )
+              .clickable { onGallerySelect(index) }
+              .padding(2.dp)
+          ) {
+            SanMiguelImage(
+              model = thumbUrl,
+              contentDescription = "Miniatura $index",
+              contentScale = ContentScale.Crop,
+              modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(8.dp))
+            )
+          }
         }
       }
     }
@@ -356,7 +325,6 @@ private fun ProductInfoForm(
       .padding(horizontal = 16.dp, vertical = 14.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp)
   ) {
-    // Header: Origin and Title
     Column {
       Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
@@ -367,7 +335,7 @@ private fun ProductInfoForm(
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-          text = "FERNANDINA DE JAGUA · LOTE EXCLUSIVO",
+          text = "FERNANDINA DE JAGUA · SAN MIGUEL",
           style = MaterialTheme.typography.labelSmall.copy(
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp
@@ -398,16 +366,36 @@ private fun ProductInfoForm(
         )
       }
 
-      Spacer(modifier = Modifier.height(4.dp))
+      Spacer(modifier = Modifier.height(6.dp))
 
-      Text(
-        text = "S/ ${String.format(java.util.Locale.US, "%.2f", product.price)}",
-        style = MaterialTheme.typography.titleLarge.copy(
-          fontFamily = FontFamily.Serif,
-          fontWeight = FontWeight.Bold
-        ),
-        color = GoldSecondary
-      )
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+      ) {
+        Text(
+          text = "S/ ${String.format(java.util.Locale.US, "%.2f", product.price)}",
+          style = MaterialTheme.typography.titleLarge.copy(
+            fontFamily = FontFamily.Serif,
+            fontWeight = FontWeight.Bold
+          ),
+          color = GoldSecondary
+        )
+
+        if (product.netWeight.isNotBlank()) {
+          Box(
+            modifier = Modifier
+              .clip(CircleShape)
+              .background(CreamSurfaceContainerHigh)
+              .padding(horizontal = 8.dp, vertical = 3.dp)
+          ) {
+            Text(
+              text = product.netWeight,
+              style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+              color = OnSurfaceVariant
+            )
+          }
+        }
+      }
     }
 
     // Origin Badges Strip
@@ -415,9 +403,19 @@ private fun ProductInfoForm(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-      OriginBadge(label = "70% Cacao de Piura", icon = Icons.Default.Eco)
-      OriginBadge(label = "Castaña de Madre de Dios", icon = Icons.Default.Verified)
+      OriginBadge(label = product.origin.ifBlank { "Cacao Peruano" }, icon = Icons.Default.Eco)
+      OriginBadge(label = "Tostado Pausado", icon = Icons.Default.Verified)
       OriginBadge(label = "Elaboración Manual", icon = Icons.Default.Handshake)
+    }
+
+    // Descripción del Producto
+    val descriptionText = product.fullDesc.ifBlank { product.shortDesc }
+    if (descriptionText.isNotBlank()) {
+      Text(
+        text = descriptionText,
+        style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp),
+        color = OnSurfaceDark
+      )
     }
 
     // Ficha de Cata Sensorial
@@ -447,7 +445,7 @@ private fun ProductInfoForm(
             )
           }
           Text(
-            text = "NOTAS DEL CHOCOLATERO",
+            text = "PERFIL AROMÁTICO",
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
             color = OnSurfaceVariant
           )
@@ -455,44 +453,68 @@ private fun ProductInfoForm(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Intensidad
         MeterBar(
-          label = "Intensidad de Cacao",
-          ratingText = "4 de 5",
-          filledCount = 4
+          label = "Intensidad",
+          ratingText = "${String.format(java.util.Locale.US, "%.1f", product.intensity)} / 5",
+          value = product.intensity
         )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        MeterBar(
-          label = "Nivel de Dulzor Equilibrado",
-          ratingText = "2 de 5",
-          filledCount = 2
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-          text = "Perfil Aromático y Textura",
-          style = MaterialTheme.typography.bodySmall,
-          color = OnSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-          AromaChip(text = "Tostado Intenso")
-          AromaChip(text = "Vainilla de selva")
+        if (product.intensityDesc.isNotBlank()) {
+          Text(
+            text = product.intensityDesc,
+            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+            color = OnSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp, bottom = 8.dp)
+          )
         }
-        Spacer(modifier = Modifier.height(6.dp))
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-          AromaChip(text = "Toque Floral")
-          AromaChip(text = "Sal Marina Crunch")
+
+        // Notas Frutales
+        MeterBar(
+          label = "Notas Frutales",
+          ratingText = "${String.format(java.util.Locale.US, "%.1f", product.fruitNotes)} / 5",
+          value = product.fruitNotes
+        )
+        if (product.fruitNotesDesc.isNotBlank()) {
+          Text(
+            text = product.fruitNotesDesc,
+            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+            color = OnSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp, bottom = 8.dp)
+          )
+        }
+
+        // Persistencia
+        MeterBar(
+          label = "Persistencia en Boca",
+          ratingText = "${String.format(java.util.Locale.US, "%.1f", product.persistence)} / 5",
+          value = product.persistence
+        )
+        if (product.persistenceDesc.isNotBlank()) {
+          Text(
+            text = product.persistenceDesc,
+            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+            color = OnSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp, bottom = 8.dp)
+          )
+        }
+
+        if (product.aromaProfile.isNotBlank()) {
+          Spacer(modifier = Modifier.height(8.dp))
+          Text(
+            text = "Notas de Aroma y Retrogusto",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = OnSurfaceDark
+          )
+          Spacer(modifier = Modifier.height(6.dp))
+          val aromas = product.aromaProfile.split(",", "·", "y").map { it.trim() }.filter { it.isNotBlank() }
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+          ) {
+            aromas.take(3).forEach { aroma ->
+              AromaChip(text = aroma)
+            }
+          }
         }
       }
     }
@@ -514,7 +536,7 @@ private fun ProductInfoForm(
           color = OnSurfaceDark
         )
         Text(
-          text = "Unidades de este producto",
+          text = "Unidades a encargar",
           style = MaterialTheme.typography.bodySmall,
           color = OnSurfaceVariant
         )
@@ -639,12 +661,12 @@ private fun ProductInfoForm(
             Spacer(modifier = Modifier.width(6.dp))
             Column(modifier = Modifier.weight(1f)) {
               Text(
-                text = "Tarjeta con caligrafía manual",
+                text = "Tarjeta con dedicatoria manual",
                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                 color = OnSurfaceDark
               )
               Text(
-                text = "Redactada con pluma estilográfica de tinta nogal",
+                text = "Redactada con pluma caligráfica para regalo",
                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                 color = OnSurfaceVariant
               )
@@ -665,7 +687,7 @@ private fun ProductInfoForm(
               OutlinedTextField(
                 value = uiState.detailCardMessage,
                 onValueChange = { if (it.length <= 120) onCardMessageChange(it) },
-                placeholder = { Text("Escriba aquí sus palabras de cariño...") },
+                placeholder = { Text("Escriba aquí sus palabras de dedicatoria...") },
                 modifier = Modifier.fillMaxWidth(),
                 maxLines = 3,
                 colors = OutlinedTextFieldDefaults.colors(
@@ -681,7 +703,7 @@ private fun ProductInfoForm(
       }
     }
 
-    // Collapsible Accordions
+    // Ingredientes & Conservación
     Card(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(12.dp),
@@ -699,7 +721,7 @@ private fun ProductInfoForm(
             Icon(Icons.Default.MenuBook, contentDescription = null, tint = OnSurfaceVariant, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-              text = "Ingredientes Selectos & Alérgenos",
+              text = "Ingredientes & Conservación",
               style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
               color = OnSurfaceDark
             )
@@ -714,7 +736,7 @@ private fun ProductInfoForm(
         AnimatedVisibility(visible = uiState.detailIngredientsExpanded) {
           Column(modifier = Modifier.padding(top = 10.dp)) {
             Text(
-              text = "Cobertura de chocolate negro 70% (habas de cacao de Piura, azúcar de caña, manteca de cacao), praliné tostado (castaña de Madre de Dios 55%, azúcar caramelizado a fuego lento), nata pasteurizada, mantequilla de Cajamarca, sal de Maras (0.4%) y vainilla de la selva peruana.",
+              text = product.ingredients.ifBlank { "Pasta de cacao puro, manteca de cacao y panela orgánica." },
               style = MaterialTheme.typography.bodySmall,
               color = OnSurfaceVariant,
               lineHeight = 18.sp
@@ -728,7 +750,7 @@ private fun ProductInfoForm(
                 .padding(8.dp)
             ) {
               Text(
-                text = "Alérgenos: Contiene avellana (fruto de cáscara) y lácteos. Puede contener trazas de almendra, pistacho y soja sin gluten.",
+                text = "Conservación: ${product.conservation.ifBlank { "16°C – 19°C · Lugar fresco y seco" }}",
                 style = MaterialTheme.typography.labelSmall,
                 color = ChocolatePrimaryContainer
               )
@@ -738,6 +760,7 @@ private fun ProductInfoForm(
       }
     }
 
+    // Modalidad de Entrega
     Card(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(12.dp),
@@ -755,7 +778,7 @@ private fun ProductInfoForm(
             Icon(Icons.Default.LocalShipping, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-              text = "Información de Entrega y Empaque",
+              text = "Entrega y Recojo en Taller",
               style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
               color = OnSurfaceDark
             )
@@ -770,21 +793,11 @@ private fun ProductInfoForm(
         AnimatedVisibility(visible = uiState.detailShippingExpanded) {
           Column(modifier = Modifier.padding(top = 10.dp)) {
             Text(
-              text = "Cuidamos cada detalle para que tus chocolates lleguen en perfecto estado. Despachamos a domicilio en Lima Metropolitana y también ofrecemos recojo sin costo en nuestra tienda (${uiState.storefront.storeAddress}).",
+              text = "Cuidamos cada detalle para que tus chocolates lleguen en perfecto estado. Despachamos a domicilio en Lima Metropolitana y también ofrecemos recojo sin costo en nuestro taller (Jr. Comandante Juan Guillermo Moore 296, San Miguel).",
               style = MaterialTheme.typography.bodySmall,
               color = OnSurfaceVariant,
               lineHeight = 18.sp
             )
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Icon(Icons.Default.Verified, contentDescription = null, tint = GoldSecondary, modifier = Modifier.size(16.dp))
-              Spacer(modifier = Modifier.width(6.dp))
-              Text(
-                text = "Entrega cuidadosa y puntual en Lima.",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = OnSurfaceDark
-              )
-            }
           }
         }
       }
@@ -860,7 +873,7 @@ private fun OriginBadge(label: String, icon: androidx.compose.ui.graphics.vector
 }
 
 @Composable
-private fun MeterBar(label: String, ratingText: String, filledCount: Int) {
+private fun MeterBar(label: String, ratingText: String, value: Double) {
   Column {
     Row(
       modifier = Modifier.fillMaxWidth(),
@@ -875,12 +888,13 @@ private fun MeterBar(label: String, ratingText: String, filledCount: Int) {
       horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
       for (i in 1..5) {
+        val filled = value >= i.toDouble() - 0.3
         Box(
           modifier = Modifier
             .weight(1f)
             .height(6.dp)
             .clip(CircleShape)
-            .background(if (i <= filledCount) ChocolatePrimaryContainer else CreamSurfaceContainerHigh)
+            .background(if (filled) ChocolatePrimaryContainer else CreamSurfaceContainerHigh)
         )
       }
     }
@@ -905,4 +919,3 @@ private fun AromaChip(text: String) {
     Text(text = text, style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp), color = OnSurfaceDark)
   }
 }
-
